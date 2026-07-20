@@ -1,0 +1,6 @@
+{
+  "name": "Cristal Art Espelhos",
+  "description": "Vidraçaria e catálogo de espelhos finos integrado ao WhatsApp",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "Config": {
+      "title": "Config",
+      "description": "Global configuration containing products, categories, whatsapp, rates, extraFields, and seller info",
+      "type": "object",
+      "properties": {
+        "products": {
+          "type": "array",
+          "description": "Array of products in the catalog"
+        },
+        "whatsAppNumber": {
+          "type": "string",
+          "description": "WhatsApp number for orders"
+        },
+        "categories": {
+          "type": "array",
+          "description": "Categories for filtering"
+        },
+        "installmentRates": {
+          "type": "object",
+          "description": "Installment rates for parceling"
+        },
+        "extraFieldsConfig": {
+          "type": "object",
+          "description": "Extra field headers"
+        },
+        "sellerName": {
+          "type": "string",
+          "description": "Seller name"
+        },
+        "sellerWhatsApp": {
+          "type": "string",
+          "description": "Seller WhatsApp link or number"
+        }
+      }
+    },
+    "UploadedImage": {
+      "title": "UploadedImage",
+      "description": "Reference or metadata of uploaded images",
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL of the uploaded image"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when uploaded"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/config/{configId}": {
+      "schema": "Config",
+      "description": "Stores application configuration state"
+    },
+    "/images/{imageId}": {
+      "schema": "UploadedImage",
+      "description": "Stores reference of uploaded images"
+    }
+  }
+}
