@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo | Cristal Art Espelhos</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
+    }
+    /* Custom Scrollbar for elegant dashboard UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d6d3d1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a29e;
+    }
+  </style>
+
+  <!-- Firebase client SDK to write changes directly to Firestore config/main -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6gcfpMVldKu_9gzCBlamiUtgNvPKEkus",
+      authDomain: "gen-lang-client-0228564548.firebaseapp.com",
+      projectId: "gen-lang-client-0228564548",
+      storageBucket: "gen-lang-client-0228564548.firebasestorage.app",
+      messagingSenderId: "529191455976",
+      appId: "1:529191455976:web:75c27c1ba9e272bff04d5d"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app, "ai-studio-websitepessoalsi-bb4441e4-59e7-4f1b-a959-32d2d509d07d");
+      
+      window.firebaseDb = db;
+      window.firebaseGetDoc = getDoc;
+      window.firebaseSetDoc = setDoc;
+      window.firebaseDoc = doc;
+      
+      console.log("[Firebase Client] Admin panel connected successfully.");
+      window.dispatchEvent(new CustomEvent('firebase-initialized'));
+    } catch (err) {
+      console.error("[Firebase Client] Admin initialization failed:", err);
+    }
+  </script>
+</head>
+<body class="bg-stone-50 text-stone-900 min-h-screen flex flex-col antialiased">
+
+  <!-- Header / Navigation Bar -->
+  <header class="bg-stone-900 text-white shrink-0 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-stone-950 shadow-md">
+          <i data-lucide="lock" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold uppercase tracking-wider">Painel Administrativo</h1>
+          <p class="text-[10px] text-stone-400 font-medium">Gerenciador de Catálogo, WhatsApp e Configurações</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <a href="/" target="_blank" class="flex items-center gap-1.5 text-stone-300 hover:text-white transition text-xs font-semibold bg-stone-800 px-3 py-2 rounded-xl border border-stone-700">
+          <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+          <span>Ver o Site</span>
+        </a>
+        <button id="admin-header-save-btn" onclick="handleHeaderSaveClick()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2 rounded-xl shadow-md transition cursor-pointer transform hover:scale-102">
+          <i data-lucide="cloud-lightning" class="h-4 w-4 text-yellow-300 animate-pulse"></i>
+          <span id="admin-header-save-text">SALVAR E ATUALIZAR SITE</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs Bar -->
+  <nav class="bg-white border-b border-stone-200 shrink-0 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-1 sm:space-x-4 py-2 overflow-x-auto custom-scroll">
+        <button onclick="switchAdminTab('produtos')" id="admin-tab-produtos" class="px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="h-4 w-4"></i>
+          Gerenciar Produtos
+        </button>
+        <button onclick="switchAdminTab('categorias')" id="admin-tab-categorias" class="px-4 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-2">
+          <i data-lucide="folder-tree" class="h-4 w-4"></i>
+          Gerenciar Categorias
+        </button>
+        <button onclick="switchAdminTab('taxas')" id="admin-tab-taxas" class="px-4 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-2">
+          <i data-lucide="percent" class="h-4 w-4"></i>
+          Taxas de Juros
+        </button>
+        <button onclick="switchAdminTab('configuracoes')" id="admin-tab-configuracoes" class="px-4 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-2">
+          <i data-lucide="settings" class="h-4 w-4"></i>
+          Configurações Gerais
+        </button>
+        <button onclick="switchAdminTab('vendedor')" id="admin-tab-vendedor" class="px-4 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-2">
+          <i data-lucide="user" class="h-4 w-4"></i>
+          Vendedor Ativo
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Workspace Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+    
+    <!-- Unsaved Changes Warning Banner -->
+    <div id="admin-unsaved-warning" class="hidden mb-6 bg-amber-50 border border-amber-200 px-5 py-4 rounded-2xl text-xs flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+      <div class="flex items-center gap-2.5 text-amber-800">
+        <i data-lucide="alert-triangle" class="h-5 w-5 shrink-0 text-amber-600 animate-bounce"></i>
+        <div>
+          <span class="font-extrabold block text-amber-900">Alterações não publicadas no servidor!</span>
+          <span class="text-stone-500 font-medium">As alterações salvas nos formulários ainda estão pendentes de consolidação definitiva nos arquivos html.</span>
+        </div>
+      </div>
+      <button onclick="certifyAndSaveGlobal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-md cursor-pointer">
+        <i data-lucide="cloud-lightning" class="h-4 w-4 text-yellow-300"></i>
+        Certificar e Salvar Globalmente
+      </button>
+    </div>
+
+    <!-- Active Tab Panel Container -->
+    <div class="bg-white rounded-3xl border border-stone-200 p-6 min-h-[450px] shadow-sm flex flex-col" id="admin-tabs-content">
+      <div class="flex flex-col items-center justify-center flex-1 py-12">
+        <div class="h-10 w-10 border-4 border-stone-200 border-t-amber-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-xs text-stone-500 font-semibold tracking-wider uppercase">Carregando dados do servidor...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Loading Sync Overlay -->
+  <div id="global-sync-overlay" class="fixed inset-0 bg-stone-950/80 z-[10000] flex flex-col items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white rounded-3xl border border-stone-200 p-8 shadow-2xl text-center max-w-sm flex flex-col items-center gap-4">
+      <div class="relative flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 animate-pulse">
+        <i data-lucide="cloud-lightning" class="h-8 w-8 text-emerald-600 animate-bounce"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-extrabold text-stone-950 uppercase tracking-wider mb-1">Gravando no Servidor</h3>
+        <p id="sync-overlay-text" class="text-[11px] text-stone-500 leading-relaxed">
+          Salvando de forma permanente todas as fotos, produtos e configurações no arquivo do servidor...
+        </p>
+      </div>
+      <div class="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
+        <div id="sync-progress-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-300" style="width: 10%;"></div>
+      </div>
+      <span id="sync-progress-percent" class="text-[9px] text-stone-400 uppercase tracking-widest font-mono">10% - Iniciando gravação</span>
+    </div>
+  </div>
+
+  <!-- Sync Success Modal -->
+  <div id="global-sync-success-modal" class="fixed inset-0 bg-stone-950/80 z-[10001] flex items-center justify-center p-4 backdrop-blur-xs transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white w-full max-w-md rounded-3xl border border-stone-200 shadow-2xl p-6 flex flex-col items-center text-center transform scale-95 transition-all duration-300">
+      <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-4 shadow-sm">
+        <i data-lucide="check-circle-2" class="h-8 w-8 text-emerald-600"></i>
+      </div>
+      <h3 class="text-sm font-extrabold text-stone-950 uppercase tracking-wider mb-2">Alterações Salvas no Código!</h3>
+      <p class="text-xs text-stone-600 leading-relaxed mb-6">
+        Todas as alterações foram gravadas fisicamente com sucesso no arquivo <strong class="text-stone-900 font-bold font-mono">index.html</strong> do seu site. Você já pode publicar as alterações via GITHUB para que reflitam na internet!
+      </p>
+      <button onclick="closeGlobalSyncSuccess()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 text-xs font-extrabold text-white rounded-xl shadow-md transition cursor-pointer uppercase tracking-wider">
+        OK, Entendi
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Modal -->
+  <div id="custom-confirm-modal" class="fixed inset-0 bg-stone-950/80 z-[10002] flex items-center justify-center p-4 backdrop-blur-xs transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white w-full max-w-sm rounded-3xl border border-stone-200 shadow-2xl p-6 flex flex-col items-center text-center transform scale-95 transition-all duration-300">
+      <div id="confirm-modal-icon" class="flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600 mb-4 shadow-sm">
+        <i data-lucide="alert-triangle" class="h-7 w-7 text-red-600"></i>
+      </div>
+      <h3 id="confirm-modal-title" class="text-sm font-extrabold text-stone-950 uppercase tracking-wider mb-2">Confirmar Ação?</h3>
+      <p id="confirm-modal-text" class="text-xs text-stone-600 leading-relaxed mb-6">Tem certeza de que deseja realizar esta operação?</p>
+      <div class="flex gap-3 w-full">
+        <button id="confirm-modal-cancel-btn" onclick="closeCustomConfirm()" class="flex-1 bg-stone-150 hover:bg-stone-200 py-3 text-xs font-extrabold text-stone-700 rounded-xl transition cursor-pointer uppercase tracking-wider">
+          Cancelar
+        </button>
+        <button id="confirm-modal-confirm-btn" onclick="handleCustomConfirmClick()" class="flex-1 bg-red-600 hover:bg-red-700 py-3 text-xs font-extrabold text-white rounded-xl shadow-md transition cursor-pointer uppercase tracking-wider">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Toasts Notification -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[10005] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Admin JavaScript Logic -->
+  <script type="text/javascript">
+    // Core data state variables
+    let products = [];
+    let categories = [];
+    let installmentRates = {};
+    let whatsAppNumber = '';
+    let sellerName = '';
+    let sellerWhatsApp = '';
+    let extraFieldsConfig = {};
+    
+    let activeAdminTab = 'produtos';
+    let currentEditingProductId = null;
+    let tempImageBase64 = null;
+    let currentFormImages = [];
+    let currentFormTechSpecs = [];
+    let dragSourceId = null;
+    let draggedSpecIndex = null;
+    let draggedImageIndex = null;
+    let pendingGlobalSave = false;
+    let syncStateTimer = null;
+    let confirmCallback = null;
+
+    const pageLoadedTime = new Date();
+    const productVariations = {};
+
+    // Get adjusted prices deterministic simulator
+    function getAdjustedPrice(id, basePrice) {
+      const prod = products.find(p => String(p.id) === String(id));
+      if (prod && prod.exactPrice) {
+        return basePrice;
+      }
+      const key = id ? String(id) : String(Math.round(basePrice || 0));
+      if (!productVariations[key]) {
+        const openHour = pageLoadedTime.getHours();
+        const openMinute = pageLoadedTime.getMinutes();
+        let hash = 0;
+        const keyWithTime = key + '_' + openHour + '_' + openMinute;
+        for (let i = 0; i < keyWithTime.length; i++) {
+          hash += keyWithTime.charCodeAt(i);
+        }
+        productVariations[key] = 1.1 + (hash % 39) / 10;
+      }
+      const variationPercent = productVariations[key];
+      const finalPrice = basePrice * (1 + variationPercent / 100);
+      let adjusted = Math.round(finalPrice * 100) / 100;
+      let cents = Math.round((adjusted - Math.floor(adjusted)) * 100);
+      if (cents === 0) {
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) {
+          hash += key.charCodeAt(i);
+        }
+        const stableCents = 13 + (hash % 83);
+        adjusted = Math.floor(adjusted) + (stableCents / 100);
+      }
+      return adjusted;
+    }
+
+    function reverseAdjustedPrice(id, targetPrice) {
+      const key = id ? String(id) : String(Math.round(targetPrice || 0));
+      if (!productVariations[key]) {
+        getAdjustedPrice(id, targetPrice);
+      }
+      const variationPercent = productVariations[key] || 1.1;
+      let basePrice = targetPrice / (1 + variationPercent / 100);
+      let bestBase = basePrice;
+      let minDiff = Infinity;
+      for (let offset = -200; offset <= 200; offset++) {
+        let testBase = Math.round((basePrice + offset * 0.01) * 100) / 100;
+        let adj = getAdjustedPrice(id, testBase);
+        let diff = Math.abs(adj - targetPrice);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestBase = testBase;
+        }
+        if (diff === 0) break;
+      }
+      return bestBase;
+    }
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Check query param for default tab
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('tab')) {
+        activeAdminTab = urlParams.get('tab');
+      }
+
+      await loadStateFromServer();
+
+      // Listen for Firebase client-side load
+      window.addEventListener('firebase-initialized', () => {
+        loadStateFromFirestore();
+      });
+    });
+
+    async function loadStateFromServer() {
+      try {
+        const response = await fetch('/api/get-state');
+        const data = await response.json();
+        if (data.success) {
+          products = data.products || [];
+          categories = data.categories || [];
+          installmentRates = data.installmentRates || {};
+          whatsAppNumber = data.whatsAppNumber || '';
+          sellerName = data.sellerName || '';
+          sellerWhatsApp = data.sellerWhatsApp || '';
+          extraFieldsConfig = data.extraFieldsConfig || {};
+          
+          switchAdminTab(activeAdminTab);
+        } else {
+          showToast('Erro ao obter dados do servidor', 'error');
+        }
+      } catch (err) {
+        console.error('Failed to fetch initial state:', err);
+        showToast('Falha na comunicação com o servidor local', 'error');
+      }
+    }
+
+    async function loadStateFromFirestore() {
+      if (!window.firebaseDb || !window.firebaseGetDoc || !window.firebaseDoc) return;
+      try {
+        const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
+        const docSnap = await window.firebaseGetDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.products) products = data.products;
+          if (data.categories) categories = data.categories;
+          if (data.installmentRates) installmentRates = data.installmentRates;
+          if (data.whatsAppNumber) whatsAppNumber = data.whatsAppNumber;
+          if (data.sellerName) sellerName = data.sellerName;
+          if (data.sellerWhatsApp) sellerWhatsApp = data.sellerWhatsApp;
+          if (data.extraFieldsConfig) extraFieldsConfig = data.extraFieldsConfig;
+
+          renderAdminTabContent();
+          showToast('Sincronizado em tempo real com o Firestore', 'success');
+        }
+      } catch (err) {
+        console.warn('Direct Firestore fetch check complete.');
+      }
+    }
+
+    function switchAdminTab(tab) {
+      activeAdminTab = tab;
+      
+      const tabProdutos = document.getElementById('admin-tab-produtos');
+      const tabCategorias = document.getElementById('admin-tab-categorias');
+      const tabTaxas = document.getElementById('admin-tab-taxas');
+      const tabConfig = document.getElementById('admin-tab-configuracoes');
+      const tabVendedor = document.getElementById('admin-tab-vendedor');
+
+      const activeClass = "bg-stone-900 text-white border-transparent px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 shadow-sm";
+      const inactiveClass = "bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-100 border-stone-200 px-4 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-2";
+
+      if (tabProdutos) tabProdutos.className = tab === 'produtos' ? activeClass : inactiveClass;
+      if (tabCategorias) tabCategorias.className = tab === 'categorias' ? activeClass : inactiveClass;
+      if (tabTaxas) tabTaxas.className = tab === 'taxas' ? activeClass : inactiveClass;
+      if (tabConfig) tabConfig.className = tab === 'configuracoes' ? activeClass : inactiveClass;
+      if (tabVendedor) tabVendedor.className = tab === 'vendedor' ? activeClass : inactiveClass;
+
+      renderAdminTabContent();
+    }
+
+    function renderAdminTabContent(searchQuery = '') {
+      const container = document.getElementById('admin-tabs-content');
+      if (!container) return;
+
+      if (activeAdminTab === 'produtos') {
+        const filtered = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-stone-50 p-4 rounded-2xl border border-stone-200">
+              <div class="relative w-full sm:max-w-xs">
+                <i data-lucide="search" class="absolute left-3 top-2.5 h-4 w-4 text-stone-400"></i>
+                <input
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  id="prod-search-input"
+                  value="${searchQuery}"
+                  oninput="renderAdminTabContent(this.value)"
+                  class="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-200 text-xs focus:border-amber-500 focus:outline-none bg-white font-medium"
+                />
+              </div>
+              <div class="text-[10px] text-stone-500 font-medium">
+                💡 <span class="font-bold text-amber-600">Arraste pela linha</span> para ordenar a exibição no catálogo!
+              </div>
+              <button onclick="showProductForm()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer shadow-sm">
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                Novo Produto
+              </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider">
+                    <th class="p-4 w-12 text-center">Ordem</th>
+                    <th class="p-4 w-20">Foto</th>
+                    <th class="p-4">Produto</th>
+                    <th class="p-4">Categoria</th>
+                    <th class="p-4">Preço PIX</th>
+                    <th class="p-4 text-right w-36">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-150">
+                  ${filtered.map((p, idx) => {
+                    const catObj = categories.find(c => c.id === p.category);
+                    const catLabel = catObj ? catObj.label : p.category;
+                    return `
+                      <tr 
+                        class="hover:bg-stone-50/50 transition cursor-move"
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${p.id}')"
+                        ondragover="handleDragOver(event)"
+                        ondragleave="handleDragLeave(event)"
+                        ondrop="handleDrop(event, '${p.id}')"
+                        title="Arraste para reordenar"
+                      >
+                        <td class="p-4 text-stone-400 text-center select-none">
+                          <i data-lucide="grip-vertical" class="h-4 w-4 mx-auto"></i>
+                        </td>
+                        <td class="p-4">
+                          <img src="${p.image}" class="h-10 w-10 object-cover rounded-lg border border-stone-200 shadow-2xs" />
+                        </td>
+                        <td class="p-4 font-bold text-stone-900">${p.name}</td>
+                        <td class="p-4 font-semibold text-stone-600">${catLabel}</td>
+                        <td class="p-4 font-mono font-bold text-stone-950">
+                          R$ ${getAdjustedPrice(p.id, p.startingPrice).toFixed(2).replace('.', ',')}
+                        </td>
+                        <td class="p-4 text-right">
+                          <div class="flex items-center justify-end gap-1.5" draggable="false" ondragstart="event.stopPropagation()">
+                            <button onclick="toggleProductPin('${p.id}')" class="p-2 rounded-lg transition cursor-pointer ${p.pinned ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600'}" title="${p.pinned ? 'Desafixar do topo' : 'Fixar no topo'}">
+                              <i data-lucide="pin" class="h-4 w-4 ${p.pinned ? 'fill-amber-600 text-amber-600' : ''}"></i>
+                            </button>
+                            <button onclick="showProductForm('${p.id}')" class="p-2 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-amber-600 transition cursor-pointer" title="Editar">
+                              <i data-lucide="pencil" class="h-4 w-4"></i>
+                            </button>
+                            <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Excluir">
+                              <i data-lucide="trash-2" class="h-4 w-4"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (activeAdminTab === 'taxas') {
+        let rowsHtml = '';
+        for (let i = 1; i <= 12; i++) {
+          const rate = installmentRates[i] || 0;
+          const baseTestValue = 1000;
+          const divisor = 1 - (rate / 100);
+          const rawTotalValue = divisor > 0 ? (baseTestValue / divisor) : (baseTestValue * (1 + rate / 100));
+          const installmentValue = Math.floor((rawTotalValue / i) * 100) / 100;
+          const totalValue = Math.round((installmentValue * i) * 100) / 100;
+          
+          rowsHtml += `
+            <tr class="hover:bg-stone-50/50 transition">
+              <td class="p-4 font-bold text-stone-900">Parcelamento em até ${i}x</td>
+              <td class="p-4 font-bold text-stone-600">${i}x</td>
+              <td class="p-4">
+                <div class="flex items-center gap-1.5 bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 w-28">
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    id="rate-input-${i}" 
+                    value="${rate}" 
+                    class="w-full bg-transparent border-none text-xs font-bold text-stone-900 focus:outline-none focus:ring-0 p-0 font-mono"
+                    oninput="updateTaxasCalculatorDemo()"
+                  />
+                  <span class="text-stone-400 font-bold text-xs">%</span>
+                </div>
+              </td>
+              <td class="p-4 font-mono text-stone-500 text-[11px]" id="rate-demo-${i}">
+                R$ 1.000,00 ➔ ${i}x de R$ ${installmentValue.toFixed(2).replace('.', ',')} (Total: R$ ${totalValue.toFixed(2).replace('.', ',')})
+              </td>
+            </tr>
+          `;
+        }
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-stone-50 p-4 rounded-2xl border border-stone-200">
+              <div>
+                <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-1.5">
+                  <i data-lucide="percent" class="h-4 w-4 text-amber-600"></i>
+                  TAXAS DE JUROS (Banco Parceiro)
+                </h4>
+                <p class="text-[11px] text-stone-500 mt-0.5">Defina as taxas de acréscimo para cada número de parcelas de 1x a 12x.</p>
+              </div>
+              <button onclick="saveInstallmentRates()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer shadow-sm">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                Salvar Taxas
+              </button>
+            </div>
+
+            <div class="bg-amber-50/50 border border-amber-200/50 p-4 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div class="text-[11px] text-amber-900 leading-relaxed">
+                <span class="font-bold">Simulador em tempo real:</span> Veja ao lado a simulação de parcelamento de um produto com preço base de <strong>R$ 1.000,00</strong> com as taxas digitadas acima.
+              </div>
+              <div class="bg-white border border-stone-200 p-3 rounded-xl font-mono text-xs font-bold text-stone-800 text-center shrink-0 shadow-3xs">
+                Valor Base Simulação: R$ 1.000,00
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider">
+                    <th class="p-4">Descrição</th>
+                    <th class="p-4 w-24">Parcelas</th>
+                    <th class="p-4 w-32">Taxa de Acréscimo</th>
+                    <th class="p-4">Simulação Prática (Valor Base: R$ 1.000,00)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-150">
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex justify-end pt-2">
+              <button onclick="saveInstallmentRates()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-3 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
+                <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                Confirmar e Salvar Configurações de Taxas
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (activeAdminTab === 'categorias') {
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-stone-50 p-4 rounded-2xl border border-stone-200">
+              <div>
+                <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-1.5">
+                  <i data-lucide="folder-tree" class="h-4 w-4 text-amber-600"></i>
+                  Gerenciar Categorias
+                </h4>
+                <p class="text-[11px] text-stone-500 mt-0.5">Adicione, edite ou remova as categorias de espelhos do catálogo de vendas.</p>
+              </div>
+              <button onclick="showCategoryForm()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer shadow-sm">
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                Nova Categoria
+              </button>
+            </div>
+
+            <div id="category-form-panel" class="hidden bg-stone-50 border border-stone-200 p-5 rounded-2xl space-y-4">
+              <h5 id="category-form-title" class="text-xs font-black uppercase text-stone-900">Nova Categoria</h5>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">Nome da Categoria</label>
+                  <input type="text" id="category-form-label" placeholder="Ex: Moldura de Alumínio" class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs focus:border-amber-500 focus:outline-none bg-white font-semibold" oninput="autoGenerateCategoryId(this.value)" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">ID Único (gerado automático)</label>
+                  <input type="text" id="category-form-id" placeholder="Ex: moldura-aluminio" class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs focus:border-amber-500 focus:outline-none bg-white font-mono" />
+                </div>
+              </div>
+              <div class="flex gap-2 justify-end pt-2">
+                <button onclick="hideCategoryForm()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer">
+                  Cancelar
+                </button>
+                <button onclick="saveCategory()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer shadow-sm">
+                  Salvar Categoria
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider">
+                    <th class="p-4">Identificador (ID)</th>
+                    <th class="p-4">Nome Exibido</th>
+                    <th class="p-4">Produtos Vinculados</th>
+                    <th class="p-4 text-right w-32">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-150">
+                  ${categories.map(c => {
+                    const prodCount = products.filter(p => p.category === c.id).length;
+                    const isSystemCategory = ['todos'].includes(c.id);
+                    return `
+                      <tr class="hover:bg-stone-50/50 transition">
+                        <td class="p-4 font-mono text-stone-500">${c.id}</td>
+                        <td class="p-4 font-extrabold text-stone-900">${c.label}</td>
+                        <td class="p-4 font-semibold text-stone-600">${prodCount} produto(s)</td>
+                        <td class="p-4 text-right">
+                          <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="showCategoryForm('${c.id}')" class="p-2 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-amber-600 transition cursor-pointer" title="Editar">
+                              <i data-lucide="pencil" class="h-4 w-4"></i>
+                            </button>
+                            ${isSystemCategory ? `
+                              <span class="text-[9px] font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded uppercase tracking-wider">Sistema</span>
+                            ` : `
+                              <button onclick="deleteCategory('${c.id}')" class="p-2 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Excluir">
+                                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                              </button>
+                            `}
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (activeAdminTab === 'configuracoes') {
+        container.innerHTML = `
+          <div class="max-w-xl space-y-6">
+            <div class="bg-emerald-50 border border-emerald-200/60 p-6 rounded-2xl space-y-4 shadow-3xs">
+              <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
+                <i data-lucide="cloud-lightning" class="h-4 w-4 text-emerald-600 animate-pulse"></i>
+                Sincronização Física no Servidor
+              </h4>
+              <p class="text-xs text-stone-600 leading-relaxed">
+                Este botão salva fisicamente todas as fotos, produtos e alterações de texto diretamente no arquivo <code class="bg-white text-stone-800 border border-stone-200 px-1 py-0.5 rounded font-mono">index.html</code> no servidor do site. Isso atualiza o código estático no seu GitHub!
+              </p>
+              <button onclick="certifyAndSaveGlobal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
+                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                Salvar Físico e Sincronizar Tudo
+              </button>
+            </div>
+
+            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-4 shadow-3xs">
+              <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
+                <i data-lucide="pencil-line" class="h-4 w-4 text-amber-500"></i>
+                Customização das Etiquetas de Campos Extras
+              </h4>
+              <p class="text-xs text-stone-500 leading-relaxed">
+                Altere os nomes de exibição das especificações especiais.
+              </p>
+              <div class="grid gap-4 sm:grid-cols-2 text-xs">
+                <div>
+                  <label class="block font-bold text-stone-700 mb-1">Título do Subtítulo (Descrição Explicativa)</label>
+                  <input type="text" id="config-desc-title" value="${extraFieldsConfig.descTitle || "Descrição Explicativa (Subtítulo)"}" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500" />
+                </div>
+                <div>
+                  <label class="block font-bold text-stone-700 mb-1">Título dos Destaques (Benefícios)</label>
+                  <input type="text" id="config-highlights-title" value="${extraFieldsConfig.highlightsTitle || "Destaques / Benefícios (Um por linha)"}" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500" />
+                </div>
+              </div>
+              <button onclick="saveExtraFieldsTitles()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition cursor-pointer">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                Salvar Etiquetas
+              </button>
+            </div>
+
+            <div class="bg-stone-50 border border-stone-200 p-6 rounded-2xl space-y-4 text-xs">
+              <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2 font-bold">
+                <i data-lucide="settings-2" class="h-4 w-4 text-amber-600"></i>
+                Ações Críticas de Dados
+              </h4>
+              <p class="text-xs text-stone-500 leading-relaxed">
+                Você pode restaurar o site para o catálogo padrão original se quiser apagar todos os testes.
+              </p>
+              <button onclick="resetAllToDefault()" class="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition cursor-pointer">
+                <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                Resetar Tudo para o Padrão de Fábrica
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (activeAdminTab === 'vendedor') {
+        container.innerHTML = `
+          <div class="max-w-xl space-y-6">
+            <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex items-start gap-4">
+              <div class="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <i data-lucide="user-check" class="h-5 w-5 text-amber-800"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-1.5">
+                  Dados do Vendedor Comercial Ativo
+                </h4>
+                <p class="text-[11px] text-stone-500 mt-0.5 leading-relaxed">
+                  Insira o nome do vendedor e o WhatsApp com DDD. Todos os botões de compra do site direcionam diretamente para o WhatsApp deste vendedor!
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-5 shadow-3xs text-xs">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Nome do Vendedor Comercial</label>
+                <div class="relative">
+                  <span class="absolute left-3.5 top-2.5 text-stone-400">
+                    <i data-lucide="user" class="h-4 w-4"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="vendedor-nome-input"
+                    value="${sellerName}"
+                    placeholder="Ex: Paulo Mendes"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none text-xs font-bold text-stone-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">WhatsApp de Atendimento (com DDD)</label>
+                <div class="relative">
+                  <span class="absolute left-3.5 top-2.5 text-stone-400">
+                    <i data-lucide="phone" class="h-4 w-4"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="vendedor-whatsapp-input"
+                    value="${sellerWhatsApp}"
+                    placeholder="Ex: (66) 9.9699-2940"
+                    oninput="this.value = maskWhatsApp(this.value)"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none text-xs font-mono font-bold text-stone-800"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+              <button onclick="saveSellerConfig()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-3 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
+                <i data-lucide="check-circle-2" class="h-4.5 w-4.5"></i>
+                Confirmar e Salvar Vendedor Ativo
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Unsaved Warning
+    function updateUnsavedWarning() {
+      const warningEl = document.getElementById('admin-unsaved-warning');
+      if (!warningEl) return;
+      if (pendingGlobalSave) {
+        warningEl.classList.remove('hidden');
+      } else {
+        warningEl.classList.add('hidden');
+      }
+    }
+
+    function handleAutoChange() {
+      pendingGlobalSave = true;
+      updateUnsavedWarning();
+      renderAdminTabContent();
+    }
+
+    // Save rates
+    function saveInstallmentRates() {
+      const updatedRates = {};
+      for (let i = 1; i <= 12; i++) {
+        const input = document.getElementById(`rate-input-${i}`);
+        if (input) {
+          let val = parseFloat(input.value.replace(',', '.'));
+          if (isNaN(val) || val < 0) {
+            alert(`Por favor, insira uma taxa válida para a parcela ${i}x.`);
+            return;
+          }
+          updatedRates[i] = val;
+        } else {
+          updatedRates[i] = installmentRates[i];
+        }
+      }
+      installmentRates = updatedRates;
+      handleAutoChange();
+      showToast('Taxas de juros modificadas localmente!', 'success');
+    }
+
+    function updateTaxasCalculatorDemo() {
+      for (let i = 1; i <= 12; i++) {
+        const input = document.getElementById(`rate-input-${i}`);
+        const demo = document.getElementById(`rate-demo-${i}`);
+        if (input && demo) {
+          let rate = parseFloat(input.value.replace(',', '.'));
+          if (isNaN(rate) || rate < 0) rate = 0;
+          const baseTestValue = 1000;
+          const divisor = 1 - (rate / 100);
+          const rawTotalValue = divisor > 0 ? (baseTestValue / divisor) : (baseTestValue * (1 + rate / 100));
+          const installmentValue = Math.floor((rawTotalValue / i) * 100) / 100;
+          const totalValue = Math.round((installmentValue * i) * 100) / 100;
+          
+          demo.innerHTML = `R$ 1.000,00 ➔ ${i}x de R$ ${installmentValue.toFixed(2).replace('.', ',')} (Total: R$ ${totalValue.toFixed(2).replace('.', ',')})`;
+        }
+      }
+    }
+
+    // Seller config
+    function maskWhatsApp(value) {
+      const x = value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,1})(\d{0,4})(\d{0,4})/);
+      if (!x[2]) return x[1];
+      return `(${x[1]}) ${x[2]}.${x[3]}${x[4] ? '-' + x[4] : ''}`;
+    }
+
+    function saveSellerConfig() {
+      const nomeInput = document.getElementById('vendedor-nome-input');
+      const whatsInput = document.getElementById('vendedor-whatsapp-input');
+      
+      if (!nomeInput || !whatsInput) return;
+
+      const name = nomeInput.value.trim();
+      const rawWhatsApp = whatsInput.value.trim();
+
+      if (!name) {
+        alert('Por favor, insira o nome do vendedor.');
+        return;
+      }
+
+      const digits = rawWhatsApp.replace(/\D/g, '');
+      if (digits.length < 10) {
+        alert('Por favor, insira um número de WhatsApp válido com DDD.');
+        return;
+      }
+
+      sellerName = name;
+      sellerWhatsApp = rawWhatsApp;
+
+      let cleaned = digits;
+      if (!cleaned.startsWith('55') && (cleaned.length === 10 || cleaned.length === 11)) {
+        cleaned = '55' + cleaned;
+      }
+      whatsAppNumber = cleaned;
+
+      handleAutoChange();
+      showToast('Dados do vendedor atualizados localmente!', 'success');
+    }
+
+    // Categories
+    function autoGenerateCategoryId(val) {
+      const idInput = document.getElementById('category-form-id');
+      if (!idInput) return;
+      const slug = val.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+      idInput.value = slug;
+    }
+
+    let editingCategoryId = null;
+
+    function showCategoryForm(catId = null) {
+      editingCategoryId = catId;
+      const formPanel = document.getElementById('category-form-panel');
+      const formTitle = document.getElementById('category-form-title');
+      const labelInput = document.getElementById('category-form-label');
+      const idInput = document.getElementById('category-form-id');
+
+      if (!formPanel) return;
+
+      formPanel.classList.remove('hidden');
+
+      if (catId) {
+        const cat = categories.find(c => c.id === catId);
+        if (formTitle) formTitle.innerText = 'Editar Categoria';
+        if (labelInput) labelInput.value = cat.label;
+        if (idInput) {
+          idInput.value = cat.id;
+          idInput.disabled = true; // IDs cannot be renamed
+        }
+      } else {
+        if (formTitle) formTitle.innerText = 'Nova Categoria';
+        if (labelInput) labelInput.value = '';
+        if (idInput) {
+          idInput.value = '';
+          idInput.disabled = false;
+        }
+      }
+    }
+
+    function hideCategoryForm() {
+      const formPanel = document.getElementById('category-form-panel');
+      if (formPanel) formPanel.classList.add('hidden');
+      editingCategoryId = null;
+    }
+
+    function saveCategory() {
+      const labelInput = document.getElementById('category-form-label');
+      const idInput = document.getElementById('category-form-id');
+
+      if (!labelInput || !idInput) return;
+
+      const label = labelInput.value.trim();
+      const id = idInput.value.trim();
+
+      if (!label || !id) {
+        alert('Por favor, preencha todos os campos da categoria.');
+        return;
+      }
+
+      if (editingCategoryId) {
+        const idx = categories.findIndex(c => c.id === editingCategoryId);
+        if (idx !== -1) {
+          categories[idx].label = label;
+        }
+      } else {
+        if (categories.some(c => c.id === id)) {
+          alert('Já existe uma categoria com este Identificador (ID) único.');
+          return;
+        }
+        categories.push({ id, label });
+      }
+
+      hideCategoryForm();
+      handleAutoChange();
+      showToast('Categorias salvas com sucesso!', 'success');
+    }
+
+    function deleteCategory(catId) {
+      showCustomConfirm(
+        'Confirmar Exclusão',
+        'Tem certeza que deseja excluir esta categoria? Os produtos associados a ela NÃO serão deletados, mas ficarão sem categoria vinculada.',
+        'Excluir',
+        true,
+        () => {
+          categories = categories.filter(c => c.id !== catId);
+          handleAutoChange();
+          showToast('Categoria excluída com sucesso!', 'success');
+        }
+      );
+    }
+
+    // Drag and drop for products table
+    function handleDragStart(event, id) {
+      dragSourceId = id;
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', id);
+      const tr = event.target.closest('tr');
+      if (tr) {
+        tr.classList.add('bg-amber-50/50', 'opacity-50');
+      }
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      const tr = event.target.closest('tr');
+      if (tr) {
+        tr.classList.add('bg-amber-50/30', 'border-t-2', 'border-amber-500');
+      }
+    }
+
+    function handleDragLeave(event) {
+      const tr = event.target.closest('tr');
+      if (tr) {
+        tr.classList.remove('bg-amber-50/30', 'border-t-2', 'border-amber-500');
+      }
+    }
+
+    function handleDrop(event, targetId) {
+      event.preventDefault();
+      const tr = event.currentTarget;
+      if (tr) {
+        tr.classList.remove('bg-amber-50/30', 'border-t-2', 'border-amber-500');
+      }
+
+      if (!dragSourceId || String(dragSourceId) === String(targetId)) {
+        dragSourceId = null;
+        renderAdminTabContent();
+        return;
+      }
+
+      const sourceIndex = products.findIndex(p => String(p.id) === String(dragSourceId));
+      const targetIndex = products.findIndex(p => String(p.id) === String(targetId));
+
+      if (sourceIndex !== -1 && targetIndex !== -1) {
+        const [removed] = products.splice(sourceIndex, 1);
+        products.splice(targetIndex, 0, removed);
+        handleAutoChange();
+      }
+      dragSourceId = null;
+    }
+
+    function toggleProductPin(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].pinned = !products[idx].pinned;
+        handleAutoChange();
+      }
+    }
+
+    function deleteProduct(prodId) {
+      showCustomConfirm(
+        'Excluir Produto',
+        'Tem certeza que deseja remover este espelho do catálogo? Esta ação não pode ser desfeita!',
+        'Excluir',
+        true,
+        () => {
+          products = products.filter(p => p.id !== prodId);
+          handleAutoChange();
+          showToast('Produto excluído com sucesso!', 'success');
+        }
+      );
+    }
+
+    // Extra fields configuration
+    function saveExtraFieldsTitles() {
+      const descInput = document.getElementById('config-desc-title');
+      const hInput = document.getElementById('config-highlights-title');
+
+      if (!descInput || !hInput) return;
+
+      extraFieldsConfig.descTitle = descInput.value.trim();
+      extraFieldsConfig.highlightsTitle = hInput.value.trim();
+
+      handleAutoChange();
+      showToast('Configurações de campos extras atualizadas com sucesso!', 'success');
+    }
+
+    function resetAllToDefault() {
+      showCustomConfirm(
+        'Confirmar Reset de Fábrica',
+        'ATENÇÃO: Isso irá apagar de forma definitiva TODOS os produtos, vendedor e fotos personalizados, restaurando o catálogo de espelhos original padrão. Continuar?',
+        'Resetar Tudo',
+        true,
+        () => {
+          localStorage.clear();
+          window.location.reload();
+        }
+      );
+    }
+
+    // Product Form
+    function showProductForm(prodId = null) {
+      currentEditingProductId = prodId;
+      tempImageBase64 = null;
+      
+      const p = prodId ? products.find(prod => prod.id === prodId) : null;
+      const container = document.getElementById('admin-tabs-content');
+      if (!container) return;
+ 
+      const title = p ? 'Editar Produto' : 'Cadastrar Novo Produto';
+      const name = p ? p.name : '';
+      const category = p ? p.category : 'led';
+      const startingPrice = p ? getAdjustedPrice(p.id, p.startingPrice).toFixed(2) : '';
+      const description = p ? p.description : '';
+      
+      currentFormImages = [];
+      if (p) {
+        if (p.image) {
+          currentFormImages.push({ id: 'img-cover', src: p.image, isLocal: p.image.startsWith('data:'), isUploaded: false });
+        } else {
+          currentFormImages.push({ id: 'img-cover', src: 'https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png', isLocal: false, isUploaded: false });
+        }
+
+        if (p.images && Array.isArray(p.images)) {
+          p.images.forEach((img, idx) => {
+            if (img && img.trim().length > 0) {
+              currentFormImages.push({ id: 'img-' + Date.now() + '-' + idx, src: img, isLocal: img.startsWith('data:'), isUploaded: false });
+            }
+          });
+        }
+      } else {
+        currentFormImages.push({ id: 'img-cover', src: 'https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png', isLocal: false, isUploaded: false });
+        for (let i = 0; i < 4; i++) {
+          currentFormImages.push({ id: 'img-gallery-' + i, src: '', isLocal: false, isUploaded: false });
+        }
+      }
+
+      if (p) {
+        if (p.techSpecs && Array.isArray(p.techSpecs)) {
+          currentFormTechSpecs = JSON.parse(JSON.stringify(p.techSpecs));
+        } else {
+          currentFormTechSpecs = [
+            { label: 'Medida', value: p.measure || '50X70cm' },
+            { label: 'Lapidado', value: p.lapidado || 'Sim' },
+            { label: 'Com Led', value: p.comLed || (p.category === 'led' ? 'Sim' : 'Não') },
+            { label: 'Entrega', value: p.entrega || 'Grátis' }
+          ];
+        }
+      } else {
+        currentFormTechSpecs = [
+          { label: 'Medida', value: '50X70cm' },
+          { label: 'Lapidado', value: 'Sim' },
+          { label: 'Com Led', value: category === 'led' ? 'Sim' : 'Não' },
+          { label: 'Entrega', value: 'Grátis' }
+        ];
+      }
+
+      const highlights = p ? p.highlights.join('\n') : 
+        'Cristal de altíssima qualidade livre de cobre\nEspessura de segurança contra batidas\nBordas lapidadas e polidas à perfeição';
+ 
+      container.innerHTML = `
+        <div class="space-y-6 w-full">
+          <div class="flex items-center gap-2 border-b border-stone-200 pb-3">
+            <button onclick="renderAdminTabContent()" class="p-1.5 rounded-full hover:bg-stone-100 text-stone-500 transition cursor-pointer">
+              <i data-lucide="arrow-left" class="h-4 w-4"></i>
+            </button>
+            <h4 class="font-extrabold text-sm text-stone-900 uppercase tracking-wider">${title}</h4>
+          </div>
+ 
+          <form id="product-admin-form" onsubmit="saveProductFromForm(event)" class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs w-full">
+            <!-- Column 1: Info -->
+            <div class="space-y-4">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Nome do Espelho</label>
+                <input
+                  type="text"
+                  id="form-p-name"
+                  required
+                  value="${name}"
+                  placeholder="Ex: Espelho Orgânico Lapidado"
+                  class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-medium text-xs"
+                />
+              </div>
+ 
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-bold text-stone-700 mb-1">Categoria</label>
+                  <select id="form-p-category" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-medium text-xs">
+                    ${categories.filter(c => c.id !== 'todos').map(c => `
+                      <option value="${c.id}" ${category === c.id ? 'selected' : ''}>${c.label}</option>
+                    `).join('')}
+                  </select>
+                </div>
+                <div class="flex flex-col justify-end">
+                  <label class="flex items-center gap-1.5 cursor-pointer bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl h-[38px] justify-center" title="Fixar produto no topo">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-pinned"
+                      ${p && p.pinned ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="pin" class="h-3 w-3"></i> Fixar no Topo
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Preço Sugerido Pix (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="form-p-price"
+                  required
+                  value="${startingPrice}"
+                  placeholder="Ex: 349.90"
+                  class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-mono text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">${extraFieldsConfig.descTitle || "Descrição Explicativa (Subtítulo)"}</label>
+                <textarea
+                  id="form-p-desc"
+                  rows="2"
+                  required
+                  placeholder="Resumo..."
+                  class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none resize-none font-medium leading-relaxed text-[11px] bg-white"
+                >${description}</textarea>
+              </div>
+ 
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">${extraFieldsConfig.highlightsTitle || "Destaques / Benefícios (Um por linha)"}</label>
+                <textarea
+                  id="form-p-highlights"
+                  rows="3"
+                  required
+                  placeholder="Um benefício por linha..."
+                  class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none resize-none font-medium leading-relaxed text-[11px] bg-white"
+                >${highlights}</textarea>
+              </div>
+ 
+              <div class="bg-stone-50 border border-stone-200 p-3.5 rounded-2xl space-y-3">
+                <p class="font-extrabold text-[10px] text-stone-950 uppercase tracking-wider mb-1">Especificações Técnicas</p>
+                <div id="tech-specs-container" class="space-y-2"></div>
+                <button type="button" onclick="addTechSpecRow()" class="mt-2 text-[11px] font-bold text-amber-700 hover:text-amber-600 flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="plus-circle" class="h-3.5 w-3.5"></i> Adicionar nova especificação
+                </button>
+              </div>
+            </div>
+ 
+            <!-- Column 2: Gallery -->
+            <div id="form-images-manager" class="space-y-4"></div>
+          </form>
+
+          <div class="flex items-center justify-end gap-3 border-t border-stone-200 pt-4 shrink-0">
+            <button type="button" onclick="renderAdminTabContent()" class="bg-stone-200 hover:bg-stone-300 text-stone-800 font-extrabold text-xs px-5 py-2.5 rounded-xl transition cursor-pointer">
+              Cancelar e Voltar
+            </button>
+            <button type="submit" form="product-admin-form" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer">
+              Confirmar Alterações
+            </button>
+          </div>
+        </div>
+      `;
+      renderFormImageManager();
+      renderFormTechSpecs();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function renderFormTechSpecs() {
+      const container = document.getElementById('tech-specs-container');
+      if (!container) return;
+      
+      container.innerHTML = currentFormTechSpecs.map((spec, idx) => `
+        <div class="flex items-center gap-1.5 p-1.5 bg-white border border-stone-200 rounded-xl hover:border-stone-300 transition" id="tech-spec-row-${idx}" ondragover="allowSpecDrop(event)" ondrop="dropSpec(event, ${idx})">
+          <div draggable="true" ondragstart="dragSpec(event, ${idx})" ondragend="dragSpecEnd(event)" class="cursor-grab active:cursor-grabbing p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-50 rounded" title="Arraste para reordenar">
+            <i data-lucide="grip-vertical" class="h-3.5 w-3.5"></i>
+          </div>
+          
+          <input
+            type="text"
+            value="${spec.label}"
+            placeholder="Etiqueta"
+            class="w-1/3 px-2 py-1.2 rounded-lg border border-stone-200 focus:border-amber-500 focus:outline-none text-[11px]"
+            oninput="updateTechSpecRow(${idx}, 'label', this.value)"
+          />
+          <input
+            type="text"
+            value="${spec.value}"
+            placeholder="Valor"
+            class="flex-1 px-2 py-1.2 rounded-lg border border-stone-200 focus:border-amber-500 focus:outline-none text-[11px]"
+            oninput="updateTechSpecRow(${idx}, 'value', this.value)"
+          />
+          
+          <div class="flex items-center shrink-0">
+            <button type="button" onclick="moveTechSpecRow(${idx}, ${idx - 1})" class="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded cursor-pointer ${idx === 0 ? 'opacity-25 pointer-events-none' : ''}" title="Subir">
+              <i data-lucide="arrow-up" class="h-3 w-3"></i>
+            </button>
+            <button type="button" onclick="moveTechSpecRow(${idx}, ${idx + 1})" class="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded cursor-pointer ${idx === currentFormTechSpecs.length - 1 ? 'opacity-25 pointer-events-none' : ''}" title="Descer">
+              <i data-lucide="arrow-down" class="h-3 w-3"></i>
+            </button>
+            <button type="button" onclick="removeTechSpecRow(${idx})" class="p-1 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded cursor-pointer ml-1" title="Remover">
+              <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function addTechSpecRow(label = '', value = '') {
+      currentFormTechSpecs.push({ label, value });
+      renderFormTechSpecs();
+    }
+
+    function removeTechSpecRow(index) {
+      currentFormTechSpecs.splice(index, 1);
+      renderFormTechSpecs();
+    }
+
+    function updateTechSpecRow(index, field, val) {
+      if (currentFormTechSpecs[index]) {
+        currentFormTechSpecs[index][field] = val;
+      }
+    }
+
+    function moveTechSpecRow(fromIdx, toIdx) {
+      if (fromIdx < 0 || fromIdx >= currentFormTechSpecs.length || toIdx < 0 || toIdx >= currentFormTechSpecs.length) return;
+      const temp = currentFormTechSpecs[fromIdx];
+      currentFormTechSpecs[fromIdx] = currentFormTechSpecs[toIdx];
+      currentFormTechSpecs[toIdx] = temp;
+      renderFormTechSpecs();
+    }
+
+    function dragSpec(event, index) {
+      draggedSpecIndex = index;
+      event.dataTransfer.effectAllowed = 'move';
+      const row = document.getElementById(`tech-spec-row-${index}`);
+      if (row) {
+        row.classList.add('opacity-40', 'border-amber-400', 'bg-amber-50/20');
+      }
+    }
+
+    function dragSpecEnd(event) {
+      if (draggedSpecIndex !== null) {
+        const row = document.getElementById(`tech-spec-row-${draggedSpecIndex}`);
+        if (row) {
+          row.classList.remove('opacity-40', 'border-amber-400', 'bg-amber-50/20');
+        }
+      }
+      draggedSpecIndex = null;
+    }
+
+    function allowSpecDrop(event) {
+      event.preventDefault();
+    }
+
+    function dropSpec(event, index) {
+      event.preventDefault();
+      if (draggedSpecIndex === null || draggedSpecIndex === index) return;
+      const temp = currentFormTechSpecs[draggedSpecIndex];
+      currentFormTechSpecs.splice(draggedSpecIndex, 1);
+      currentFormTechSpecs.splice(index, 0, temp);
+      renderFormTechSpecs();
+    }
+
+    // Product form image managers
+    function renderFormImageManager() {
+      const container = document.getElementById('form-images-manager');
+      if (!container) return;
+
+      let html = `
+        <div class="space-y-4 w-full">
+          <!-- COVER IMAGE SECTION -->
+          <div class="p-4 bg-stone-50 border border-amber-200/50 rounded-2xl relative">
+            <span class="absolute top-3 right-3 bg-amber-500 text-stone-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+              Foto Capa Principal
+            </span>
+            <h4 class="font-bold text-stone-800 text-xs mb-3 flex items-center gap-1.5">
+              <i data-lucide="image" class="h-4 w-4 text-amber-500"></i>
+              Imagem de Capa (Exibição Primária)
+            </h4>
+      `;
+
+      const coverImg = currentFormImages[0] || { id: 'img-cover', src: '', isLocal: false, isUploaded: false };
+      const coverSrc = coverImg.src || 'https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png';
+
+      html += `
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div class="sm:col-span-3 flex justify-center">
+                <img src="${coverSrc}" class="h-20 w-20 object-cover rounded-xl border border-stone-200 bg-white shadow-xs" id="preview-img-cover" />
+              </div>
+              <div class="sm:col-span-9 space-y-2">
+                <div>
+                  <label class="block text-[11px] text-stone-500 font-bold mb-1">Endereço da Imagem (URL)</label>
+                  <input
+                    type="text"
+                    value="${coverImg.src.startsWith('data:') ? '' : coverImg.src}"
+                    placeholder="https://exemplo.com/imagem-principal.jpg"
+                    class="w-full px-3 py-1.5 rounded-lg border border-stone-200 focus:border-amber-500 focus:outline-none text-[11px] bg-white"
+                    oninput="updateFormImageUrl(0, this.value)"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-stone-400 font-medium">Ou envie uma foto local:</span>
+                  <button type="button" onclick="document.getElementById('file-cover').click()" class="bg-white hover:bg-stone-100 text-stone-700 font-bold px-2.5 py-1 border border-stone-200 rounded-lg text-[10px] cursor-pointer flex items-center gap-1 transition">
+                    <i data-lucide="upload" class="h-3 w-3 text-stone-500"></i> Fazer Upload
+                  </button>
+                  <input type="file" id="file-cover" accept="image/*" class="hidden" onchange="uploadFileForFormImage(0, event)" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GALLERY SLIDES SECTION -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-stone-800 text-xs flex items-center justify-between">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="images" class="h-4 w-4 text-stone-500"></i>
+                Fotos Adicionais (Galeria do Slide)
+              </span>
+              <span class="text-[10px] text-stone-400 font-normal">Até 4 adicionais recomendados</span>
+            </h4>
+            
+            <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+      `;
+
+      const galleryImages = currentFormImages.slice(1);
+      if (galleryImages.length === 0) {
+        html += `
+              <div class="text-center py-6 border border-dashed border-stone-200 rounded-2xl bg-stone-50/50">
+                <p class="text-[11px] text-stone-400">Nenhuma foto adicional no slide. O espelho usará apenas a foto de capa.</p>
+              </div>
+        `;
+      } else {
+        galleryImages.forEach((img, idx) => {
+          const actualIndex = idx + 1;
+          const imgUrl = img.src || '';
+          const previewSrc = imgUrl || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+
+          html += `
+              <div id="gallery-image-row-${actualIndex}" ondragover="allowImageDrop(event)" ondrop="dropImage(event, ${actualIndex})" class="p-3 bg-white border border-stone-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-stone-300 transition relative">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <div draggable="true" ondragstart="dragImage(event, ${actualIndex})" ondragend="dragImageEnd(event)" class="cursor-grab active:cursor-grabbing p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-50 rounded" title="Arraste para reordenar">
+                    <i data-lucide="grip-vertical" class="h-3.5 w-3.5"></i>
+                  </div>
+
+                  <div class="relative shrink-0">
+                    <img src="${previewSrc}" class="h-14 w-14 object-cover rounded-lg border border-stone-200 bg-stone-50" id="preview-img-${actualIndex}" />
+                    <span class="absolute -top-1.5 -left-1.5 bg-stone-900 text-white text-[8px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow border border-stone-700">
+                      ${idx + 1}
+                    </span>
+                  </div>
+                  <div class="flex-1 min-w-[120px] sm:max-w-[200px]">
+                    <div class="text-[11px] font-bold text-stone-700">Slide #${idx + 1}</div>
+                    <div class="text-[9px] text-stone-400 truncate">${imgUrl.startsWith('data:') ? 'Imagem Local' : (imgUrl || 'Nenhuma')}</div>
+                  </div>
+                </div>
+
+                <div class="flex-1 w-full space-y-1.5">
+                  <input
+                    type="text"
+                    value="${imgUrl.startsWith('data:') ? '' : imgUrl}"
+                    placeholder="URL da foto adicional"
+                    class="w-full px-2.5 py-1.2 rounded-md border border-stone-200 focus:border-amber-500 focus:outline-none text-[10px] bg-stone-50 hover:bg-white focus:bg-white transition"
+                    oninput="updateFormImageUrl(${actualIndex}, this.value)"
+                  />
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="document.getElementById('file-gallery-${actualIndex}').click()" class="bg-stone-50 hover:bg-stone-100 text-stone-600 font-medium px-2 py-0.5 border border-stone-200 rounded text-[9px] cursor-pointer flex items-center gap-1 transition">
+                      <i data-lucide="upload" class="h-2.5 w-2.5"></i> Upload
+                    </button>
+                    <input type="file" id="file-gallery-${actualIndex}" accept="image/*" class="hidden" onchange="uploadFileForFormImage(${actualIndex}, event)" />
+                    ${imgUrl ? `
+                      <button type="button" onclick="clearFormImage(${actualIndex})" class="text-stone-400 hover:text-red-500 text-[9px] font-medium px-1 cursor-pointer">
+                        Limpar
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1 ml-auto shrink-0 border-l border-stone-100 pl-2">
+                  <button type="button" onclick="moveFormImage(${actualIndex}, ${actualIndex - 1})" class="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded cursor-pointer ${actualIndex === 1 ? 'opacity-25 pointer-events-none' : ''}" title="Subir Posição">
+                    <i data-lucide="arrow-up" class="h-3.5 w-3.5"></i>
+                  </button>
+                  <button type="button" onclick="moveFormImage(${actualIndex}, ${actualIndex + 1})" class="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded cursor-pointer ${actualIndex === currentFormImages.length - 1 ? 'opacity-25 pointer-events-none' : ''}" title="Descer Posição">
+                    <i data-lucide="arrow-down" class="h-3.5 w-3.5"></i>
+                  </button>
+                  <button type="button" onclick="deleteFormImage(${actualIndex})" class="p-1 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded cursor-pointer ml-1" title="Excluir">
+                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                  </button>
+                </div>
+              </div>
+          `;
+        });
+      }
+
+      html += `
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1.5">
+            <button type="button" onclick="addFormImageSlot()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-3 py-2 rounded-xl text-[11px] cursor-pointer flex items-center gap-1.5 transition">
+              <i data-lucide="plus" class="h-3.5 w-3.5"></i> Adicionar Foto ao Slide
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function uploadFileForFormImage(idx, event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      compressAndSaveImage(file, function(base64) {
+        if (currentFormImages[idx]) {
+          currentFormImages[idx].src = base64;
+          currentFormImages[idx].isLocal = true;
+        }
+        renderFormImageManager();
+      });
+    }
+
+    function updateFormImageUrl(idx, url) {
+      if (currentFormImages[idx]) {
+        currentFormImages[idx].src = url;
+        currentFormImages[idx].isLocal = false;
+        
+        const previewEl = document.getElementById(idx === 0 ? 'preview-img-cover' : `preview-img-${idx}`);
+        if (previewEl) {
+          previewEl.src = url || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+        }
+      }
+    }
+
+    function clearFormImage(idx) {
+      if (currentFormImages[idx]) {
+        currentFormImages[idx].src = '';
+        currentFormImages[idx].isLocal = false;
+        renderFormImageManager();
+      }
+    }
+
+    function moveFormImage(fromIdx, toIdx) {
+      if (fromIdx < 1 || fromIdx >= currentFormImages.length || toIdx < 1 || toIdx >= currentFormImages.length) return;
+      const temp = currentFormImages[fromIdx];
+      currentFormImages[fromIdx] = currentFormImages[toIdx];
+      currentFormImages[toIdx] = temp;
+      renderFormImageManager();
+    }
+
+    function deleteFormImage(idx) {
+      currentFormImages.splice(idx, 1);
+      renderFormImageManager();
+    }
+
+    function addFormImageSlot() {
+      currentFormImages.push({ id: 'img-gallery-' + Date.now(), src: '', isLocal: false, isUploaded: false });
+      renderFormImageManager();
+    }
+
+    function compressAndSaveImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1080;
+          canvas.height = 1080;
+          const ctx = canvas.getContext('2d');
+          
+          let srcX = 0;
+          let srcY = 0;
+          let srcWidth = img.width;
+          let srcHeight = img.height;
+          
+          if (img.width > img.height) {
+            srcWidth = img.height;
+            srcX = (img.width - img.height) / 2;
+          } else {
+            srcHeight = img.width;
+            srcY = (img.height - img.width) / 2;
+          }
+          
+          ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, 1080, 1080);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+          callback(compressedBase64);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function dragImage(event, index) {
+      draggedImageIndex = index;
+      event.dataTransfer.effectAllowed = 'move';
+      const row = document.getElementById(`gallery-image-row-${index}`);
+      if (row) {
+        row.classList.add('opacity-40', 'border-amber-400', 'bg-amber-50/10');
+      }
+    }
+
+    function dragImageEnd(event) {
+      if (draggedImageIndex !== null) {
+        const row = document.getElementById(`gallery-image-row-${draggedImageIndex}`);
+        if (row) {
+          row.classList.remove('opacity-40', 'border-amber-400', 'bg-amber-50/10');
+        }
+      }
+      draggedImageIndex = null;
+    }
+
+    function allowImageDrop(event) {
+      event.preventDefault();
+    }
+
+    // Drop additional images in form manager
+    function dropImage(event, index) {
+      event.preventDefault();
+      if (draggedImageIndex === null || draggedImageIndex === index) return;
+      if (draggedImageIndex < 1 || index < 1) return; // Only allow reordering of additional images (index 1+)
+      
+      const temp = currentFormImages[draggedImageIndex];
+      currentFormImages.splice(draggedImageIndex, 1);
+      currentFormImages.splice(index, 0, temp);
+      renderFormImageManager();
+    }
+
+    async function saveProductFromForm(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('form-p-name').value;
+      const category = document.getElementById('form-p-category').value;
+      const description = document.getElementById('form-p-desc').value;
+      const hText = document.getElementById('form-p-highlights').value;
+      const highlights = hText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const targetPrice = parseFloat(document.getElementById('form-p-price').value);
+
+      if (isNaN(targetPrice) || targetPrice <= 0) {
+        alert('Por favor, defina um preço Pix válido.');
+        return;
+      }
+
+      const pinned = document.getElementById('form-p-pinned')?.checked || false;
+
+      const tempId = currentEditingProductId || ('product-' + Date.now());
+      const startingPrice = reverseAdjustedPrice(tempId, targetPrice);
+
+      const techSpecs = currentFormTechSpecs.filter(s => s.label && s.label.trim().length > 0);
+
+      const measureSpec = techSpecs.find(s => s.label.toLowerCase() === 'medida' || s.label.toLowerCase() === 'medida exibida');
+      const measure = measureSpec ? measureSpec.value : '50X70cm';
+
+      const lapidadoSpec = techSpecs.find(s => s.label.toLowerCase() === 'lapidado' || s.label.toLowerCase() === 'acabamento lapidado');
+      const lapidado = lapidadoSpec ? lapidadoSpec.value : 'Sim';
+
+      const comLedSpec = techSpecs.find(s => s.label.toLowerCase() === 'com led' || s.label.toLowerCase() === 'comled');
+      const comLed = comLedSpec ? comLedSpec.value : (category === 'led' ? 'Sim' : 'Não');
+
+      const entregaSpec = techSpecs.find(s => s.label.toLowerCase() === 'entrega' || s.label.toLowerCase() === 'opção de entrega');
+      const entrega = entregaSpec ? entregaSpec.value : 'Grátis';
+
+      // Save spinner
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.innerText : 'Confirmar';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="inline-block h-3 w-3 border-2 border-stone-800 border-t-transparent rounded-full animate-spin mr-1"></span> Salvando imagens...`;
+      }
+
+      // Collect & upload images
+      const finalImageUrls = [];
+      for (let i = 0; i < currentFormImages.length; i++) {
+        const img = currentFormImages[i];
+        if (img.src && img.src.startsWith('data:')) {
+          try {
+            const uploadResponse = await fetch('/api/upload-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ base64: img.src })
+            });
+            const uploadResult = await uploadResponse.json();
+            if (uploadResult.success && uploadResult.url) {
+              let absoluteUrl = uploadResult.url;
+              if (absoluteUrl.startsWith('/')) {
+                absoluteUrl = window.location.origin + absoluteUrl;
+              }
+              finalImageUrls.push(absoluteUrl);
+            } else {
+              alert(`Falha no upload da imagem #${i+1}: ${uploadResult.error || 'Erro'}`);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText;
+              }
+              return;
+            }
+          } catch (error) {
+            console.error('Upload error:', error);
+            alert('Falha ao comunicar com o servidor de fotos.');
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerText = originalText;
+            }
+            return;
+          }
+        } else if (img.src && img.src.trim().length > 0) {
+          let trimmedSrc = img.src.trim();
+          if (trimmedSrc.startsWith('/')) {
+            trimmedSrc = window.location.origin + trimmedSrc;
+          }
+          finalImageUrls.push(trimmedSrc);
+        }
+      }
+
+      if (finalImageUrls.length === 0) {
+        finalImageUrls.push('https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png');
+      }
+
+      const image = finalImageUrls[0];
+      const extraImages = finalImageUrls.slice(1);
+
+      if (currentEditingProductId) {
+        const idx = products.findIndex(p => p.id === currentEditingProductId);
+        if (idx !== -1) {
+          products[idx].name = name;
+          products[idx].category = category;
+          products[idx].startingPrice = startingPrice;
+          products[idx].description = description;
+          products[idx].highlights = highlights;
+          products[idx].image = image;
+          products[idx].images = extraImages;
+          products[idx].measure = measure;
+          products[idx].lapidado = lapidado;
+          products[idx].comLed = comLed;
+          products[idx].entrega = entrega;
+          products[idx].techSpecs = techSpecs;
+          products[idx].exactPrice = false;
+          products[idx].pinned = pinned;
+
+          const priceMultiplier = startingPrice / products[idx].popularSizes[0].price;
+          products[idx].popularSizes.forEach(s => {
+            s.price = Math.round(s.price * priceMultiplier);
+          });
+        }
+      } else {
+        const newProduct = {
+          id: tempId,
+          name: name,
+          description: description,
+          category: category,
+          startingPrice: startingPrice,
+          rating: 4.8,
+          image: image,
+          images: extraImages,
+          thicknessOptions: [4, 5, 6],
+          finishOptions: category === 'led' ? ['Lapidado com LED Integrado'] : ['Lapidado Polido', 'Bisotado 15mm'],
+          popularSizes: [
+            { width: 50, height: 70, price: startingPrice },
+            { width: 60, height: 80, price: Math.round(startingPrice * 1.45) },
+            { width: 80, height: 100, price: Math.round(startingPrice * 2.1) }
+          ],
+          highlights: highlights,
+          measure: measure,
+          lapidado: lapidado,
+          comLed: comLed,
+          entrega: entrega,
+          techSpecs: techSpecs,
+          exactPrice: false,
+          pinned: pinned
+        };
+        products.push(newProduct);
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalText;
+      }
+
+      handleAutoChange();
+      showToast('Alterações gravadas temporariamente na fila!', 'success');
+      renderAdminTabContent();
+    }
+
+    // Save state completely (Cloud Sync & Local Cache)
+    async function certifyAndSaveGlobal() {
+      showSilentSyncStatus('saving');
+      
+      const dbSaved = await saveStateToFirestoreDirectly();
+
+      fetch('/api/save-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          products: products, 
+          whatsAppNumber: whatsAppNumber, 
+          categories: categories, 
+          installmentRates: installmentRates,
+          extraFieldsConfig: extraFieldsConfig,
+          sellerName: sellerName,
+          sellerWhatsApp: sellerWhatsApp
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('[Auto Sync] Saved permanently to server disk.');
+          showSilentSyncStatus('success');
+          pendingGlobalSave = false;
+          updateUnsavedWarning();
+          
+          // Show beautiful success overlay
+          const successModal = document.getElementById('global-sync-success-modal');
+          if (successModal) {
+            successModal.classList.remove('opacity-0', 'pointer-events-none');
+            successModal.classList.add('opacity-100', 'pointer-events-auto');
+            const card = successModal.querySelector('div');
+            if (card) {
+              card.classList.remove('scale-95');
+              card.classList.add('scale-100');
+            }
+          }
+        } else {
+          if (dbSaved) {
+            showSilentSyncStatus('success');
+            pendingGlobalSave = false;
+            updateUnsavedWarning();
+            showToast('Sincronizado no Firestore!', 'success');
+          } else {
+            showSilentSyncStatus('error');
+            showToast('Erro ao sincronizar com o servidor', 'error');
+          }
+        }
+      })
+      .catch(err => {
+        if (dbSaved) {
+          showSilentSyncStatus('success');
+          pendingGlobalSave = false;
+          updateUnsavedWarning();
+          showToast('Sincronizado em tempo real via Firestore!', 'success');
+        } else {
+          showSilentSyncStatus('error');
+          showToast('Falha na conexão de rede com o servidor', 'error');
+        }
+      });
+    }
+
+    async function saveStateToFirestoreDirectly() {
+      if (!window.firebaseDb || !window.firebaseSetDoc || !window.firebaseDoc) {
+        console.warn('[Firestore] Client SDK not initialized.');
+        return false;
+      }
+      try {
+        const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
+        await window.firebaseSetDoc(docRef, {
+          products: products, 
+          whatsAppNumber: whatsAppNumber, 
+          categories: categories, 
+          installmentRates: installmentRates,
+          extraFieldsConfig: extraFieldsConfig,
+          sellerName: sellerName,
+          sellerWhatsApp: sellerWhatsApp,
+          updatedAt: new Date().toISOString()
+        });
+        return true;
+      } catch (err) {
+        console.error('[Firestore] Client save failed:', err);
+        return false;
+      }
+    }
+
+    function handleHeaderSaveClick() {
+      certifyAndSaveGlobal();
+    }
+
+    function closeGlobalSyncSuccess() {
+      const successModal = document.getElementById('global-sync-success-modal');
+      if (successModal) {
+        successModal.classList.add('opacity-0', 'pointer-events-none');
+        successModal.classList.remove('opacity-100', 'pointer-events-auto');
+        const card = successModal.querySelector('div');
+        if (card) {
+          card.classList.add('scale-95');
+          card.classList.remove('scale-100');
+        }
+      }
+    }
+
+    // Silent Sync Status
+    function showSilentSyncStatus(status) {
+      const overlay = document.getElementById('global-sync-overlay');
+      const text = document.getElementById('sync-overlay-text');
+      const bar = document.getElementById('sync-progress-bar');
+      const percent = document.getElementById('sync-progress-percent');
+
+      if (!overlay) return;
+
+      if (status === 'saving') {
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        overlay.classList.add('opacity-100', 'pointer-events-auto');
+        if (bar) bar.style.width = '45%';
+        if (percent) percent.innerText = '45% - Sincronizando dados...';
+        if (text) text.innerText = 'Salvando e atualizando o catálogo de forma estável...';
+      } else if (status === 'success') {
+        if (bar) bar.style.width = '100%';
+        if (percent) percent.innerText = '100% - Concluído com sucesso!';
+        if (text) text.innerText = 'Alterações estáticas atualizadas no servidor!';
+        
+        setTimeout(() => {
+          overlay.classList.add('opacity-0', 'pointer-events-none');
+          overlay.classList.remove('opacity-100', 'pointer-events-auto');
+        }, 800);
+      } else {
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+        overlay.classList.remove('opacity-100', 'pointer-events-auto');
+      }
+    }
+
+    // Toast Messages
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `p-3.5 rounded-xl border shadow-lg text-xs font-bold flex items-center gap-2 transition duration-300 transform translate-y-2 opacity-0 pointer-events-auto select-none max-w-xs ${
+        type === 'success' 
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+          : 'bg-red-50 border-red-200 text-red-800'
+      }`;
+
+      const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+      toast.innerHTML = `<i data-lucide="${icon}" class="h-4 w-4 shrink-0"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-1');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Confirmation Modal
+    function showCustomConfirm(title, text, confirmText, isDanger, onConfirm) {
+      const modal = document.getElementById('custom-confirm-modal');
+      const titleEl = document.getElementById('confirm-modal-title');
+      const textEl = document.getElementById('confirm-modal-text');
+      const iconContainer = document.getElementById('confirm-modal-icon');
+      const confirmBtn = document.getElementById('confirm-modal-confirm-btn');
+
+      if (!modal) return;
+
+      if (titleEl) titleEl.innerText = title;
+      if (textEl) textEl.innerHTML = text;
+
+      if (confirmBtn) {
+        confirmBtn.innerText = confirmText.toUpperCase();
+        if (isDanger) {
+          confirmBtn.className = "flex-1 bg-red-600 hover:bg-red-700 py-3 text-xs font-extrabold text-white rounded-xl shadow-md transition cursor-pointer uppercase tracking-wider";
+          if (iconContainer) {
+            iconContainer.className = "flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600 mb-4 shadow-sm";
+            iconContainer.innerHTML = `<i data-lucide="alert-triangle" class="h-7 w-7 text-red-600"></i>`;
+          }
+        } else {
+          confirmBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 text-xs font-extrabold text-white rounded-xl shadow-md transition cursor-pointer uppercase tracking-wider";
+          if (iconContainer) {
+            iconContainer.className = "flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-4 shadow-sm";
+            iconContainer.innerHTML = `<i data-lucide="check-circle" class="h-7 w-7 text-emerald-600"></i>`;
+          }
+        }
+      }
+
+      confirmCallback = onConfirm;
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100', 'pointer-events-auto');
+      const card = modal.querySelector('div');
+      if (card) {
+        card.classList.remove('scale-95');
+        card.classList.add('scale-100');
+      }
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closeCustomConfirm() {
+      const modal = document.getElementById('custom-confirm-modal');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+        const card = modal.querySelector('div');
+        if (card) {
+          card.classList.add('scale-95');
+          card.classList.remove('scale-100');
+        }
+      }
+      confirmCallback = null;
+    }
+
+    function handleCustomConfirmClick() {
+      if (typeof confirmCallback === 'function') {
+        confirmCallback();
+      }
+      closeCustomConfirm();
+    }
+  </script>
+</body>
+</html>

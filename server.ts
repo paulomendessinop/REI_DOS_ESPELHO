@@ -317,6 +317,101 @@ async function startServer() {
     return false;
   }
 
+  // Admin routing
+  app.get("/admin", (req: any, res: any) => {
+    res.sendFile(path.join(process.cwd(), "admin", "index.html"));
+  });
+  app.get("/admin/index.html", (req: any, res: any) => {
+    res.sendFile(path.join(process.cwd(), "admin", "index.html"));
+  });
+
+  // Get state handler
+  app.get("/api/get-state", async (req: any, res: any) => {
+    try {
+      // 1. Try Firestore first
+      const firestoreState = await getFirestoreState();
+      if (firestoreState) {
+        return res.json({
+          success: true,
+          products: firestoreState.products || [],
+          whatsAppNumber: firestoreState.whatsAppNumber || "",
+          categories: firestoreState.categories || [],
+          installmentRates: firestoreState.installmentRates || {},
+          extraFieldsConfig: firestoreState.extraFieldsConfig || {},
+          sellerName: firestoreState.sellerName || "",
+          sellerWhatsApp: firestoreState.sellerWhatsApp || ""
+        });
+      }
+
+      // 2. Fallback: Parse from index.html on server disk
+      const indexHtmlPath = path.join(process.cwd(), "index.html");
+      if (fs.existsSync(indexHtmlPath)) {
+        const html = fs.readFileSync(indexHtmlPath, "utf-8");
+        
+        // Helper to extract values
+        const extractVal = (startDelim: string, endDelim: string, regex: RegExp, defaultValue: any) => {
+          const startIdx = html.indexOf(startDelim);
+          const endIdx = html.indexOf(endDelim);
+          if (startIdx !== -1 && endIdx !== -1 && startIdx < endIdx) {
+            const section = html.substring(startIdx + startDelim.length, endIdx);
+            const match = section.match(regex);
+            if (match) {
+              try {
+                return JSON.parse(match[1].trim());
+              } catch (e) {
+                // String constant or other format
+                const raw = match[1].trim();
+                if (raw.startsWith("'") && raw.endsWith("'")) {
+                  return raw.slice(1, -1);
+                }
+                if (raw.startsWith('"') && raw.endsWith('"')) {
+                  return raw.slice(1, -1);
+                }
+                return raw;
+              }
+            }
+          }
+          return defaultValue;
+        };
+
+        const products = extractVal("// === PRODUCTS_START ===", "// === PRODUCTS_END ===", /products\s*=\s*([\s\S]+?);/, []);
+        const whatsAppNumber = extractVal("// === WHATSAPP_START ===", "// === WHATSAPP_END ===", /whatsAppNumber\s*=\s*['"]?([0-9]+)['"]?;/, "");
+        const categories = extractVal("// === CATEGORIES_START ===", "// === CATEGORIES_END ===", /categories\s*=\s*([\s\S]+?);/, []);
+        const installmentRates = extractVal("// === RATES_START ===", "// === RATES_END ===", /installmentRates\s*=\s*([\s\S]+?);/, {});
+        const extraFieldsConfig = extractVal("// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", /extraFieldsConfig\s*=\s*([\s\S]+?);/, {});
+        
+        // Custom extract for seller variables
+        let sellerName = "";
+        let sellerWhatsApp = "";
+        const sellerIdxStart = html.indexOf("// === SELLER_START ===");
+        const sellerIdxEnd = html.indexOf("// === SELLER_END ===");
+        if (sellerIdxStart !== -1 && sellerIdxEnd !== -1) {
+          const section = html.substring(sellerIdxStart, sellerIdxEnd);
+          const nameMatch = section.match(/sellerName\s*=\s*['"]([^'"]+)['"]/);
+          const waMatch = section.match(/sellerWhatsApp\s*=\s*['"]([^'"]+)['"]/);
+          if (nameMatch) sellerName = nameMatch[1];
+          if (waMatch) sellerWhatsApp = waMatch[1];
+        }
+
+        return res.json({
+          success: true,
+          products,
+          whatsAppNumber,
+          categories,
+          installmentRates,
+          extraFieldsConfig,
+          sellerName,
+          sellerWhatsApp
+        });
+      }
+
+      return res.status(500).json({ success: false, error: "Configuration not found" });
+    } catch (err: any) {
+      console.error("Error in /api/get-state:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // Save state handler (Cloud Sync & Local Cache)
   app.post("/api/save-state", async (req: any, res: any) => {
     try {
