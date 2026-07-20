@@ -108,6 +108,36 @@
       scrollbar-width: none !important;
     }
   </style>
+
+  <!-- Firebase client SDK integration for real-time live synchronization -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6gcfpMVldKu_9gzCBlamiUtgNvPKEkus",
+      authDomain: "gen-lang-client-0228564548.firebaseapp.com",
+      projectId: "gen-lang-client-0228564548",
+      storageBucket: "gen-lang-client-0228564548.firebasestorage.app",
+      messagingSenderId: "529191455976",
+      appId: "1:529191455976:web:75c27c1ba9e272bff04d5d"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app, "ai-studio-websitepessoalsi-bb4441e4-59e7-4f1b-a959-32d2d509d07d");
+      
+      window.firebaseDb = db;
+      window.firebaseGetDoc = getDoc;
+      window.firebaseSetDoc = setDoc;
+      window.firebaseDoc = doc;
+      
+      console.log("[Firebase Client] Initialized successfully.");
+      window.dispatchEvent(new CustomEvent('firebase-initialized'));
+    } catch (err) {
+      console.error("[Firebase Client] Initialization failed:", err);
+    }
+  </script>
 </head>
 <body class="bg-[#fafaf9] text-[#1c1917] font-sans antialiased custom-scroll">
 
@@ -961,12 +991,12 @@
     products = [
       {
             "id": "espelho-sol-geometrico",
-            "name": "Espelho Sol Decorativos",
+            "name": "ESPELHOS DO RAULZINHO GATO",
             "description": "Design artístico composto com raios metálicos dourados e espelho circular central.",
             "category": "classico",
             "startingPrice": 619.83,
             "rating": 4.6,
-            "image": "https://i.postimg.cc/pTv2QkDz/Espelho-001.jpg",
+            "image": "https://s2-receitas.glbimg.com/hCMfduAOXNtkkNUxYYoGn1iC7yg=/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_1f540e0b94d8437dbbc39d567a1dee68/internal_photos/bs/2021/w/d/pPWpQOTJus3u4DeVyADQ/bolo-de-cenoura.jpg",
             "thicknessOptions": [
                   4
             ],
@@ -1585,6 +1615,76 @@
         if (el.classList.contains('revealed')) return;
         scrollRevealObserver.observe(el);
       });
+    }
+
+    async function loadStateFromFirestore() {
+      if (!window.firebaseDb || !window.firebaseGetDoc || !window.firebaseDoc) {
+        console.log('[Firestore] Client SDK elements not fully available yet.');
+        return;
+      }
+      try {
+        console.log('[Firestore] Initiating client-side configuration fetch from Cloud Firestore...');
+        const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
+        const docSnap = await window.firebaseGetDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          console.log('[Firestore] Successfully retrieved configuration:', data);
+          
+          if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+            products = data.products;
+          }
+          if (data.whatsAppNumber) {
+            whatsAppNumber = data.whatsAppNumber;
+          }
+          if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
+            categories = data.categories;
+          }
+          if (data.installmentRates) {
+            installmentRates = data.installmentRates;
+          }
+          if (data.extraFieldsConfig) {
+            extraFieldsConfig = data.extraFieldsConfig;
+          }
+          if (data.sellerName) {
+            sellerName = data.sellerName;
+          }
+          if (data.sellerWhatsApp) {
+            sellerWhatsApp = data.sellerWhatsApp;
+          }
+
+          // Sync with LocalStorage
+          localStorage.setItem('cristal_art_products', JSON.stringify(products));
+          localStorage.setItem('cristal_art_categories', JSON.stringify(categories));
+          localStorage.setItem('cristal_art_rates', JSON.stringify(installmentRates));
+          localStorage.setItem('cristal_art_extra_fields', JSON.stringify(extraFieldsConfig));
+          localStorage.setItem('cristal_art_seller_name', sellerName);
+          localStorage.setItem('cristal_art_seller_whatsapp', sellerWhatsApp);
+          localStorage.setItem('cristal_art_whatsapp', whatsAppNumber);
+
+          // Update WhatsApp and view bindings
+          updateWhatsAppDisplay();
+          renderCategoryFilters();
+          renderProducts();
+          if (typeof renderAdminTabContent === 'function') {
+            renderAdminTabContent();
+          }
+          if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+          }
+          console.log('[Firestore] Local application state and UI updated in real-time!');
+        } else {
+          console.log('[Firestore] No dynamic configuration document found in Cloud Firestore. Operating in static fallback mode.');
+        }
+      } catch (err) {
+        console.error('[Firestore] Client-side fetch failed, operating in offline/static fallback mode:', err);
+      }
+    }
+
+    // Bind real-time trigger for client-side loading
+    if (window.firebaseDb) {
+      loadStateFromFirestore();
+    } else {
+      window.addEventListener('firebase-initialized', loadStateFromFirestore);
     }
 
     // INITS
