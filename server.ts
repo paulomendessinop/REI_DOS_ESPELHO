@@ -387,8 +387,8 @@ async function startServer() {
         return res.status(500).json({ success: false, error: "index.html not found on server" });
       }
     } catch (error: any) {
-      console.log("Notice: /api/save-state path update complete.");
-      return res.status(500).json({ success: false, error: "Save process deferred" });
+      console.error("Error in /api/save-state:", error);
+      return res.status(500).json({ success: false, error: error.message || "Save process deferred" });
     }
   });
 

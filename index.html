@@ -996,7 +996,7 @@
             "category": "classico",
             "startingPrice": 619.83,
             "rating": 4.6,
-            "image": "https://s2-receitas.glbimg.com/hCMfduAOXNtkkNUxYYoGn1iC7yg=/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_1f540e0b94d8437dbbc39d567a1dee68/internal_photos/bs/2021/w/d/pPWpQOTJus3u4DeVyADQ/bolo-de-cenoura.jpg",
+            "image": "https://ais-dev-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app/uploads/img_1784557101724_39.jpg",
             "thicknessOptions": [
                   4
             ],
@@ -3915,29 +3915,41 @@
       }, 3500);
     }
 
-    function triggerIndexHtmlDownload(htmlContent) {
+    async function saveStateToFirestoreDirectly() {
+      if (!window.firebaseDb || !window.firebaseSetDoc || !window.firebaseDoc) {
+        console.warn('[Firestore] Client SDK not initialized. Cannot save to Firestore directly.');
+        return false;
+      }
       try {
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'index.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        console.log('[Auto Download] index.html downloaded successfully.');
-        showToast('Arquivo index.html atualizado e baixado automaticamente!', 'success');
+        console.log('[Firestore] Saving state directly from client...');
+        const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
+        await window.firebaseSetDoc(docRef, {
+          products: products, 
+          whatsAppNumber: whatsAppNumber, 
+          categories: categories, 
+          installmentRates: installmentRates,
+          extraFieldsConfig: extraFieldsConfig,
+          sellerName: sellerName,
+          sellerWhatsApp: sellerWhatsApp,
+          updatedAt: new Date().toISOString()
+        });
+        console.log('[Firestore] State saved directly to Firestore config/main.');
+        return true;
       } catch (err) {
-        console.error('[Auto Download] Failed to download index.html:', err);
+        console.error('[Firestore] Direct client-side save failed:', err);
+        return false;
       }
     }
 
-    function syncChangesToDisk() {
+    async function syncChangesToDisk() {
       showSilentSyncStatus('saving');
       
       if (syncStateTimer) clearTimeout(syncStateTimer);
 
+      // First, always save directly to Firestore for real-time publishing
+      const dbSaved = await saveStateToFirestoreDirectly();
+
+      // Next, update server local files (so changes sync back to the workspace for GitHub export)
       fetch('/api/save-state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3958,17 +3970,30 @@
           showSilentSyncStatus('success');
           pendingGlobalSave = false;
           updateUnsavedWarning();
-          if (data.html) {
-            triggerIndexHtmlDownload(data.html);
-          }
+          showToast('Alterações publicadas e salvas com sucesso!', 'success');
         } else {
-          console.error('[Auto Sync] Server save failed:', data.error || data.message);
-          showSilentSyncStatus('error');
+          console.warn('[Auto Sync] Server save returned false, but checking Firestore status:', data.error);
+          if (dbSaved) {
+            // If DB save succeeded, we are still good for live publishing!
+            showSilentSyncStatus('success');
+            pendingGlobalSave = false;
+            updateUnsavedWarning();
+            showToast('Alterações publicadas em tempo real via Firestore!', 'success');
+          } else {
+            showSilentSyncStatus('error');
+          }
         }
       })
       .catch(err => {
-        console.error('[Auto Sync] Network error during save:', err);
-        showSilentSyncStatus('error');
+        console.warn('[Auto Sync] Network/server save failed (expected on static host). Firestore saved:', dbSaved, err);
+        if (dbSaved) {
+          showSilentSyncStatus('success');
+          pendingGlobalSave = false;
+          updateUnsavedWarning();
+          showToast('Publicado em tempo real!', 'success');
+        } else {
+          showSilentSyncStatus('error');
+        }
       });
     }
 
@@ -5003,7 +5028,7 @@
       }
     }
 
-    function triggerGlobalUpdate() {
+    async function triggerGlobalUpdate() {
       // 1. Show the custom loading overlay
       const overlay = document.getElementById('global-sync-overlay');
       const bar = document.getElementById('sync-progress-bar');
@@ -5023,9 +5048,9 @@
 
       // 2. Simulated progressive updates to the loading screen
       const steps = [
-        { w: '30%', t: 'Empacotando produtos...', p: '30% - Processando catálogo' },
-        { w: '65%', t: 'Otimizando imagens de uploads...', p: '65% - Compactando recursos' },
-        { w: '90%', t: 'Sincronizando arquivos do servidor...', p: '90% - Atualizando index.html' }
+        { w: '35%', t: 'Sincronizando Banco de Dados...', p: '35% - Gravando no Firestore' },
+        { w: '70%', t: 'Gravando no Servidor local...', p: '70% - Atualizando index.html' },
+        { w: '95%', t: 'Finalizando Sincronização...', p: '95% - Aplicando em Tempo Real' }
       ];
 
       steps.forEach((step, idx) => {
@@ -5033,8 +5058,11 @@
           if (bar) bar.style.width = step.w;
           if (percent) percent.innerText = step.p;
           if (title) title.innerText = step.t;
-        }, (idx + 1) * 150);
+        }, (idx + 1) * 120);
       });
+
+      // Try client-side Firestore save first
+      const dbSaved = await saveStateToFirestoreDirectly();
 
       // 3. Make the API Call to the Server
       setTimeout(() => {
@@ -5053,38 +5081,47 @@
         })
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
+          if (data.success || dbSaved) {
             // Update UI to 100% success
             if (bar) bar.style.width = '100%';
-            if (percent) percent.innerText = '100% - Concluído com sucesso!';
+            if (percent) percent.innerText = '100% - Publicado com sucesso!';
             if (title) title.innerText = 'Sincronizado!';
-
-            // Automatically trigger the download of index.html
-            if (data.html) {
-              triggerIndexHtmlDownload(data.html);
-            }
 
             setTimeout(() => {
               // Hide loading overlay
               overlay.classList.add('opacity-0', 'pointer-events-none');
               overlay.classList.remove('opacity-100', 'pointer-events-auto');
 
+              showToast('Alterações publicadas com sucesso!', 'success');
               // Automatically and cleanly reload the page to load updated index.html
               reloadPageClean();
-            }, 400);
+            }, 600);
           } else {
             throw new Error(data.error || data.message || 'Erro inesperado no servidor.');
           }
         })
         .catch(err => {
-          // Hide loading overlay
-          overlay.classList.add('opacity-0', 'pointer-events-none');
-          overlay.classList.remove('opacity-100', 'pointer-events-auto');
+          if (dbSaved) {
+            // If Firestore succeeded but server failed (e.g., on GitHub Pages), we are still successful!
+            if (bar) bar.style.width = '100%';
+            if (percent) percent.innerText = '100% - Publicado em tempo real via Firestore!';
+            if (title) title.innerText = 'Sincronizado!';
+            setTimeout(() => {
+              overlay.classList.add('opacity-0', 'pointer-events-none');
+              overlay.classList.remove('opacity-100', 'pointer-events-auto');
+              showToast('Publicado em tempo real!', 'success');
+              reloadPageClean();
+            }, 600);
+          } else {
+            // Hide loading overlay
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            overlay.classList.remove('opacity-100', 'pointer-events-auto');
 
-          console.error('Erro de sincronização global:', err);
-          alert('Houve um problema ao sincronizar com o servidor: ' + err.message + '\nPor favor, tente novamente.');
+            console.error('Erro de sincronização global:', err);
+            alert('Houve um problema ao sincronizar: ' + err.message + '\nPor favor, verifique sua conexão.');
+          }
         });
-      }, 550); // Faster, highly optimized save and sync flow
+      }, 500);
     }
 
     function closeGlobalSyncSuccess() {
