@@ -6,10 +6,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Config collection rules (public read, server-only write)
+    // Config collection rules (public read and write)
     match /config/{configId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
 
     // Images collection rules (public read, server-only write)
