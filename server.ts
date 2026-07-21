@@ -487,6 +487,56 @@ async function startServer() {
     }
   });
 
+  // Export index.html dynamically compiled with the latest data
+  app.get("/api/export-index", async (req: any, res: any) => {
+    try {
+      const indexHtmlPath = path.join(process.cwd(), "index.html");
+      if (!fs.existsSync(indexHtmlPath)) {
+        return res.status(500).json({ success: false, error: "index.html not found on server" });
+      }
+
+      let html = fs.readFileSync(indexHtmlPath, "utf-8");
+
+      // Load current state from Firestore to make sure the exported file has the latest data embedded
+      const firestoreState = await getFirestoreState();
+      if (firestoreState) {
+        const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp } = firestoreState;
+
+        if (products) {
+          const productsStr = `    products = ${JSON.stringify(products, null, 6)};`;
+          html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
+        }
+        if (whatsAppNumber) {
+          const whatsAppStr = `    let whatsAppNumber = '${whatsAppNumber}';`;
+          html = injectIntoHtml(html, "// === WHATSAPP_START ===", "// === WHATSAPP_END ===", whatsAppStr);
+        }
+        if (categories) {
+          const categoriesStr = `    let categories = ${JSON.stringify(categories, null, 6)};`;
+          html = injectIntoHtml(html, "// === CATEGORIES_START ===", "// === CATEGORIES_END ===", categoriesStr);
+        }
+        if (installmentRates) {
+          const ratesStr = `    let installmentRates = ${JSON.stringify(installmentRates, null, 6)};`;
+          html = injectIntoHtml(html, "// === RATES_START ===", "// === RATES_END ===", ratesStr);
+        }
+        if (extraFieldsConfig) {
+          const extraFieldsStr = `    let extraFieldsConfig = ${JSON.stringify(extraFieldsConfig, null, 6)};`;
+          html = injectIntoHtml(html, "// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", extraFieldsStr);
+        }
+        if (sellerName !== undefined && sellerWhatsApp !== undefined) {
+          const sellerStr = `    let sellerName = '${sellerName}';\n    let sellerWhatsApp = '${sellerWhatsApp}';`;
+          html = injectIntoHtml(html, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);
+        }
+      }
+
+      res.setHeader("Content-Disposition", "attachment; filename=index.html");
+      res.setHeader("Content-Type", "text/html");
+      return res.send(html);
+    } catch (err: any) {
+      console.error("Error exporting index.html:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   let viteInstance: any = null;
 
   // Dynamic SEO & State Injection handler for index.html
