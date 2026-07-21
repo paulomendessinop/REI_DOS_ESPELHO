@@ -755,10 +755,19 @@
       }
     }
 
+    let autoSaveTimeout = null;
+
     function handleAutoChange() {
       pendingGlobalSave = true;
       updateUnsavedWarning();
       renderAdminTabContent();
+
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+      }
+      autoSaveTimeout = setTimeout(() => {
+        certifyAndSaveGlobal(true);
+      }, 1500);
     }
 
     // Save rates
@@ -1723,8 +1732,12 @@
     }
 
     // Save state completely (Cloud Sync & Local Cache)
-    async function certifyAndSaveGlobal() {
-      showSilentSyncStatus('saving');
+    async function certifyAndSaveGlobal(isSilent = false) {
+      if (!isSilent) {
+        showSilentSyncStatus('saving');
+      } else {
+        console.log('[Auto Save] Background auto-sync initiated...');
+      }
       
       const dbSaved = await saveStateToFirestoreDirectly();
 
@@ -1745,42 +1758,58 @@
       .then(data => {
         if (data.success) {
           console.log('[Auto Sync] Saved permanently to server disk.');
-          showSilentSyncStatus('success');
+          if (!isSilent) {
+            showSilentSyncStatus('success');
+            
+            // Show beautiful success overlay
+            const successModal = document.getElementById('global-sync-success-modal');
+            if (successModal) {
+              successModal.classList.remove('opacity-0', 'pointer-events-none');
+              successModal.classList.add('opacity-100', 'pointer-events-auto');
+              const card = successModal.querySelector('div');
+              if (card) {
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+              }
+            }
+          } else {
+            showToast('Alterações sincronizadas no servidor automaticamente!', 'success');
+          }
           pendingGlobalSave = false;
           updateUnsavedWarning();
-          
-          // Show beautiful success overlay
-          const successModal = document.getElementById('global-sync-success-modal');
-          if (successModal) {
-            successModal.classList.remove('opacity-0', 'pointer-events-none');
-            successModal.classList.add('opacity-100', 'pointer-events-auto');
-            const card = successModal.querySelector('div');
-            if (card) {
-              card.classList.remove('scale-95');
-              card.classList.add('scale-100');
-            }
-          }
         } else {
           if (dbSaved) {
-            showSilentSyncStatus('success');
+            if (!isSilent) {
+              showSilentSyncStatus('success');
+              showToast('Sincronizado no Firestore!', 'success');
+            } else {
+              showToast('Sincronizado no banco de dados Firestore!', 'success');
+            }
             pendingGlobalSave = false;
             updateUnsavedWarning();
-            showToast('Sincronizado no Firestore!', 'success');
           } else {
-            showSilentSyncStatus('error');
-            showToast('Erro ao sincronizar com o servidor', 'error');
+            if (!isSilent) {
+              showSilentSyncStatus('error');
+              showToast('Erro ao sincronizar com o servidor', 'error');
+            }
           }
         }
       })
       .catch(err => {
         if (dbSaved) {
-          showSilentSyncStatus('success');
+          if (!isSilent) {
+            showSilentSyncStatus('success');
+            showToast('Sincronizado em tempo real via Firestore!', 'success');
+          } else {
+            showToast('Sincronizado via Firestore!', 'success');
+          }
           pendingGlobalSave = false;
           updateUnsavedWarning();
-          showToast('Sincronizado em tempo real via Firestore!', 'success');
         } else {
-          showSilentSyncStatus('error');
-          showToast('Falha na conexão de rede com o servidor', 'error');
+          if (!isSilent) {
+            showSilentSyncStatus('error');
+            showToast('Falha na conexão de rede com o servidor', 'error');
+          }
         }
       });
     }
