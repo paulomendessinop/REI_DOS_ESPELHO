@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Profile, Message } from './types';
 import ProfileEditModal from './components/ProfileEditModal';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // Default initial state for a highly professional profile
 const DEFAULT_PROFILE: Profile = {
@@ -136,6 +137,7 @@ export default function App() {
 
   return (
     <div id="app-root" className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+      <SpeedInsights />
       
       {/* Top Header Panel */}
       <header id="main-header" className="border-b border-slate-200 bg-white/70 backdrop-blur-md sticky top-0 z-40">
