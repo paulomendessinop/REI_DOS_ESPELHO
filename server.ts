@@ -149,6 +149,17 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Custom CORS middleware to support uploading and saving from custom domains like Vercel
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Increase body limit to handle large base64 image uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -159,8 +170,59 @@ async function startServer() {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
-  // Serve uploads directory statically (local fallback)
+  // Ensure IMGs directory exists
+  const imgsDir = path.join(process.cwd(), "IMGs");
+  if (!fs.existsSync(imgsDir)) {
+    fs.mkdirSync(imgsDir, { recursive: true });
+  }
+
+  // Serve directories statically with robust Firebase Storage fallback for container restarts
+  const serveWithFallback = (localDir: string, bucketSubdir: string) => {
+    return async (req: any, res: any, next: any) => {
+      try {
+        const filename = req.params.filename;
+        if (!filename) return next();
+
+        const localPath = path.join(localDir, filename);
+
+        // If file exists locally, serve it
+        if (fs.existsSync(localPath)) {
+          return res.sendFile(localPath);
+        }
+
+        // If file does not exist locally, download it from Firebase Storage bucket
+        if (bucket) {
+          const remotePath = `${bucketSubdir}/${filename}`;
+          const file = bucket.file(remotePath);
+          console.log(`Checking Firebase Storage for missing file: ${remotePath}`);
+          
+          const [exists] = await file.exists();
+          if (exists) {
+            console.log(`Downloading missing file from Firebase Storage: ${remotePath}`);
+            const [buffer] = await file.download();
+            
+            // Save locally to cache it on ephemeral container disk
+            fs.writeFileSync(localPath, buffer);
+            console.log(`Successfully cached file locally: ${localPath}`);
+            
+            return res.sendFile(localPath);
+          } else {
+            console.log(`File does not exist in Firebase Storage bucket: ${remotePath}`);
+          }
+        }
+      } catch (err: any) {
+        console.error(`Error in serveWithFallback for ${req.params.filename}:`, err);
+      }
+      next();
+    };
+  };
+
+  app.get("/uploads/:filename", serveWithFallback(uploadsDir, "uploads"));
+  app.get("/IMGs/:filename", serveWithFallback(imgsDir, "IMGs"));
+
+  // Static serving as final fallback
   app.use("/uploads", express.static(uploadsDir));
+  app.use("/IMGs", express.static(imgsDir));
 
   // --- API ENDPOINTS ---
 
@@ -181,115 +243,62 @@ async function startServer() {
       const extension = matches[1] === "jpeg" ? "jpg" : matches[1];
       const buffer = Buffer.from(matches[2], "base64");
 
-      let url = "";
+      // 1. ALWAYS write the file locally inside IMGs/ folder to allow GitHub / Vercel immediate sync
+      const filename = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.${extension}`;
+      const filePath = path.join(imgsDir, filename);
+      fs.writeFileSync(filePath, buffer);
+      console.log(`Saved locally inside IMGs directory: ${filePath}`);
 
-      // 1. Try Firebase Storage (Google Cloud Storage - Primary, durable and secure)
+      // The primary relative URL is inside IMGs/
+      let url = `IMGs/${filename}`;
+
+      // (Optional Backup) If bucket is set up, upload to Firebase Storage as well
       if (bucket) {
         try {
-          const filename = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.${extension}`;
-          const file = bucket.file(`uploads/${filename}`);
-          
-          await file.save(buffer, {
-            metadata: {
-              contentType: `image/${extension === "jpg" ? "jpeg" : extension}`
-            }
-          });
-
-          // Attempt to make public, ignore if bucket policy enforces uniform bucket-level access
-          try {
-            await file.makePublic();
-          } catch (aclError) {
-            console.log("Bucket enforces Uniform Bucket-Level Access, skipping ACL update.");
-          }
-
-          const encodedPath = encodeURIComponent(`uploads/${filename}`);
-          url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
-          console.log("Uploaded successfully to Firebase Storage (Google Cloud):", url);
-
-          // Log transaction in Firestore "images" collection
-          if (db) {
-            try {
-              await db.collection("images").add({
-                filename,
-                url,
-                createdAt: new Date().toISOString()
-              });
-            } catch (dbErr: any) {
-              console.log("Notice: Metadata check complete.");
-              if (defaultDb && db !== defaultDb) {
-                try {
-                  await defaultDb.collection("images").add({
-                    filename,
-                    url,
-                    createdAt: new Date().toISOString()
-                  });
-                } catch (fallbackErr: any) {
-                  console.log("Notice: Secondary metadata check complete.");
+          // Check if bucket exists and is accessible to prevent unhandled GaxiosErrors
+          const [exists] = await bucket.exists().catch(() => [false]);
+          if (exists) {
+            const remotePath = `IMGs/${filename}`;
+            const file = bucket.file(remotePath);
+            const downloadToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+            
+            await file.save(buffer, {
+              metadata: {
+                contentType: `image/${extension === "jpg" ? "jpeg" : extension}`,
+                metadata: {
+                  firebaseStorageDownloadTokens: downloadToken
                 }
               }
+            });
+            
+            console.log("Uploaded file successfully to Firebase Storage.");
+            
+            // Generate the direct, public, permanent download URL with token
+            const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(remotePath)}?alt=media&token=${downloadToken}`;
+            
+            // Return the absolute public Cloud Storage URL so it persists permanently and can be loaded from anywhere
+            url = publicUrl;
+  
+            // Also log to Firestore "images" and "IMGs" collection for cloud synchronization
+            if (db) {
+              try {
+                const docData = {
+                  filename,
+                  url: publicUrl,
+                  createdAt: new Date().toISOString()
+                };
+                await db.collection("images").add(docData);
+                await db.collection("IMGs").add(docData);
+              } catch (dbErr: any) {
+                console.log("Notice: Firestore image logging complete.");
+              }
             }
+          } else {
+            console.log(`Notice: Firebase Storage bucket ${bucket.name} does not exist or is not initialized yet. Using local container path: ${url}`);
           }
         } catch (err: any) {
-          console.log("Notice: Primary storage check complete. Checking alternative paths.");
+          console.log("Notice: Firebase Storage upload skipped, fallback to local path. Reason:", err.message || err);
         }
-      }
-
-      // 2. Fallback: Try Telegra.ph
-      if (!url) {
-        try {
-          const blob = new Blob([buffer], { type: `image/${extension}` });
-          const formData = new FormData();
-          formData.append("file", blob, `image.${extension}`);
-
-          const response = await fetch("https://telegra.ph/upload", {
-            method: "POST",
-            body: formData,
-          });
-
-          if (response.ok) {
-            const data: any = await response.json();
-            if (Array.isArray(data) && data[0] && data[0].src) {
-              url = `https://telegra.ph${data[0].src}`;
-              console.log("Uploaded successfully to Telegra.ph fallback:", url);
-            }
-          }
-        } catch (err: any) {
-          console.log("Notice: Telegra.ph fallback checked.");
-        }
-      }
-
-      // 3. Fallback: Try Catbox.moe
-      if (!url) {
-        try {
-          const blob = new Blob([buffer], { type: `image/${extension}` });
-          const formData = new FormData();
-          formData.append("reqtype", "fileupload");
-          formData.append("fileToUpload", blob, `image.${extension}`);
-
-          const response = await fetch("https://catbox.moe/user/api.php", {
-            method: "POST",
-            body: formData,
-          });
-
-          if (response.ok) {
-            const text = await response.text();
-            if (text && text.startsWith("http")) {
-              url = text.trim();
-              console.log("Uploaded successfully to Catbox.moe fallback:", url);
-            }
-          }
-        } catch (err: any) {
-          console.log("Notice: Catbox.moe fallback checked.");
-        }
-      }
-
-      // 4. Fallback: Save locally on server disk
-      if (!url) {
-        const filename = `img_${Date.now()}_${Math.floor(Math.random() * 1000)}.${extension}`;
-        const filePath = path.join(uploadsDir, filename);
-        fs.writeFileSync(filePath, buffer);
-        url = `/uploads/${filename}`;
-        console.log(`Saved locally as final fallback: ${url}`);
       }
 
       return res.json({ success: true, url });
@@ -502,6 +511,13 @@ async function startServer() {
       if (firestoreState) {
         const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp } = firestoreState;
 
+        // Inject dynamic backendUrl
+        const host = req.get("host");
+        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+        const currentBackendUrl = `${protocol}://${host}`;
+        const backendUrlStr = `    let backendUrl = '${currentBackendUrl}';`;
+        html = injectIntoHtml(html, "// === BACKEND_URL_START ===", "// === BACKEND_URL_END ===", backendUrlStr);
+
         if (products) {
           const productsStr = `    products = ${JSON.stringify(products, null, 6)};`;
           html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
@@ -559,6 +575,13 @@ async function startServer() {
       if (firestoreState) {
         const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp } = firestoreState;
 
+        // Inject dynamic backendUrl
+        const host = req.get("host");
+        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+        const currentBackendUrl = `${protocol}://${host}`;
+        const backendUrlStr = `    let backendUrl = '${currentBackendUrl}';`;
+        html = injectIntoHtml(html, "// === BACKEND_URL_START ===", "// === BACKEND_URL_END ===", backendUrlStr);
+
         if (products) {
           const productsStr = `    products = ${JSON.stringify(products, null, 6)};`;
           html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
@@ -608,10 +631,11 @@ async function startServer() {
           }
 
           // Make image URL absolute
-          if (imgUrl.startsWith("/")) {
+          if (imgUrl.startsWith("/") || imgUrl.startsWith("IMGs/") || imgUrl.startsWith("uploads/")) {
             const host = req.get("host");
             const protocol = req.headers["x-forwarded-proto"] || req.protocol;
-            imgUrl = `${protocol}://${host}${imgUrl}`;
+            const cleanPath = imgUrl.startsWith("/") ? imgUrl : `/${imgUrl}`;
+            imgUrl = `${protocol}://${host}${cleanPath}`;
           }
 
           // Replace tags safely

@@ -86,17 +86,13 @@
       </div>
       
       <div class="flex items-center gap-3">
-        <a href="/" target="_blank" class="flex items-center gap-1.5 text-stone-300 hover:text-white transition text-xs font-semibold bg-stone-800 px-3 py-2 rounded-xl border border-stone-700">
+        <a href="/" class="flex items-center gap-1.5 text-stone-300 hover:text-white transition text-xs font-semibold bg-stone-800 px-3.5 py-2 rounded-xl border border-stone-700">
           <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
           <span>Ver o Site</span>
         </a>
-        <a href="/api/export-index" class="flex items-center gap-1.5 text-blue-300 hover:text-white transition text-xs font-bold bg-stone-800 px-3 py-2 rounded-xl border border-stone-700" title="Baixar index.html com as últimas modificações integradas para seu código local">
-          <i data-lucide="download" class="h-3.5 w-3.5 text-blue-400"></i>
-          <span>Baixar index.html</span>
-        </a>
-        <button id="admin-header-save-btn" onclick="handleHeaderSaveClick()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2 rounded-xl shadow-md transition cursor-pointer transform hover:scale-102">
-          <i data-lucide="cloud-lightning" class="h-4 w-4 text-yellow-300 animate-pulse"></i>
-          <span id="admin-header-save-text">SALVAR E ATUALIZAR SITE</span>
+        <button id="admin-header-save-btn" onclick="goToWebsite()" class="flex items-center gap-2 bg-stone-800 hover:bg-stone-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl border border-stone-700 shadow-md transition cursor-pointer transform hover:scale-102">
+          <i data-lucide="arrow-left" class="h-4 w-4 text-emerald-400"></i>
+          <span id="admin-header-save-text">VOLTAR AO SITE</span>
         </button>
       </div>
     </div>
@@ -197,7 +193,7 @@
           Como este site está rodando na nuvem, o Git do editor local pode relatar <strong class="text-blue-950">"Nenhuma mudança para fazer commit"</strong> se as alterações não forem baixadas. 
           Para manter o seu repositório Git atualizado ou obter as mudanças estáticas, baixe o <strong class="text-blue-950">index.html</strong> atualizado clicando abaixo e substitua o arquivo correspondente no seu editor!
         </p>
-        <a href="/api/export-index" class="mt-3 w-full bg-blue-600 hover:bg-blue-500 py-2.5 px-4 text-xs font-extrabold text-white rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider">
+        <a href="/api/export-index" id="btn-export-index-modal" class="mt-3 w-full bg-blue-600 hover:bg-blue-500 py-2.5 px-4 text-xs font-extrabold text-white rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider">
           <i data-lucide="download" class="h-4 w-4"></i>
           Baixar index.html Atualizado
         </a>
@@ -233,6 +229,113 @@
 
   <!-- Admin JavaScript Logic -->
   <script type="text/javascript">
+    // === BACKEND_URL_START ===
+    let backendUrl = 'https://ais-dev-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app';
+    // === BACKEND_URL_END ===
+    window.backendUrl = backendUrl;
+
+    function getApiUrl(path) {
+      if (!path) return '';
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+      }
+      const cleanPath = path.startsWith('/') ? path : '/' + path;
+      const bUrl = window.backendUrl || '';
+      if (!bUrl || window.location.origin === bUrl) {
+        return cleanPath;
+      }
+      const cleanBackend = bUrl.endsWith('/') ? bUrl.slice(0, -1) : bUrl;
+      return cleanBackend + cleanPath;
+    }
+    window.getApiUrl = getApiUrl;
+
+    function formatImagePath(url) {
+      if (!url) return '';
+      let clean = url.trim();
+      if (clean.startsWith('data:') || clean.startsWith('http://') || clean.startsWith('https://')) {
+        return clean;
+      }
+      if (!clean.startsWith('/')) {
+        clean = '/' + clean;
+      }
+      return clean;
+    }
+    window.formatImagePath = formatImagePath;
+
+    function makeRelativePath(url) {
+      if (!url) return '';
+      let cleanUrl = url.trim();
+      if (cleanUrl.startsWith('https://firebasestorage.googleapis.com') || cleanUrl.startsWith('https://storage.googleapis.com')) {
+        return cleanUrl;
+      }
+      const prefixes = [
+        window.location.origin,
+        ...(window.fallbackBackends || []),
+        window.backendUrl || ''
+      ];
+      for (const prefix of prefixes) {
+        if (prefix && cleanUrl.startsWith(prefix)) {
+          cleanUrl = cleanUrl.substring(prefix.length);
+        }
+      }
+      if (!cleanUrl.startsWith('/') && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('data:')) {
+        cleanUrl = '/' + cleanUrl;
+      }
+      return cleanUrl;
+    }
+    window.makeRelativePath = makeRelativePath;
+
+    // Helper to resolve relative image paths inside admin
+    function getAdminImageSrc(src) {
+      return formatImagePath(src);
+    }
+
+    function handleImageError(img) {
+      if (!img) return;
+      
+      let fallbackIndex = parseInt(img.getAttribute('data-fallback-index') || '-1', 10);
+      let currentSrc = img.getAttribute('src') || img.src || '';
+      if (!currentSrc) {
+        img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+        return;
+      }
+
+      let isRelative = false;
+      let relPath = '';
+
+      if (currentSrc.includes('/IMGs/')) {
+        isRelative = true;
+        relPath = 'IMGs/' + currentSrc.split('/IMGs/')[1];
+      } else if (currentSrc.includes('/uploads/')) {
+        isRelative = true;
+        relPath = 'uploads/' + currentSrc.split('/uploads/')[1];
+      } else if (currentSrc.startsWith('IMGs/') || currentSrc.startsWith('uploads/')) {
+        isRelative = true;
+        relPath = currentSrc;
+      }
+
+      if (isRelative && relPath) {
+        fallbackIndex++;
+        if (window.fallbackBackends && fallbackIndex < window.fallbackBackends.length) {
+          const nextBackend = window.fallbackBackends[fallbackIndex];
+          img.setAttribute('data-fallback-index', fallbackIndex);
+          
+          if (nextBackend.includes('storage.googleapis.com')) {
+            const bucketName = 'gen-lang-client-0228564548.firebasestorage.app';
+            const encodedPath = encodeURIComponent(relPath);
+            img.src = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
+          } else {
+            const cleanBackend = nextBackend.endsWith('/') ? nextBackend : nextBackend + '/';
+            img.src = cleanBackend + relPath;
+          }
+          return;
+        }
+      }
+
+      img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+    }
+    window.handleImageError = handleImageError;
+
     // Core data state variables
     let products = [];
     let categories = [];
@@ -319,6 +422,16 @@
         activeAdminTab = urlParams.get('tab');
       }
 
+      // Update export-index download buttons hrefs dynamically for cross-origin compatibility
+      const headerExportBtn = document.getElementById('btn-export-index-header');
+      if (headerExportBtn) {
+        headerExportBtn.setAttribute('href', getApiUrl('/api/export-index'));
+      }
+      const modalExportBtn = document.getElementById('btn-export-index-modal');
+      if (modalExportBtn) {
+        modalExportBtn.setAttribute('href', getApiUrl('/api/export-index'));
+      }
+
       await loadStateFromServer();
 
       // Listen for Firebase client-side load
@@ -329,7 +442,7 @@
 
     async function loadStateFromServer() {
       try {
-        const response = await fetch('/api/get-state');
+        const response = await fetch(getApiUrl('/api/get-state'));
         const data = await response.json();
         if (data.success) {
           products = data.products || [];
@@ -350,12 +463,19 @@
       }
     }
 
+    function firestoreWithTimeout(promise, ms = 2500) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore connection timeout')), ms))
+      ]);
+    }
+
     async function loadStateFromFirestore() {
       if (!window.firebaseDb || !window.firebaseGetDoc || !window.firebaseDoc) return;
       try {
         const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
-        const docSnap = await window.firebaseGetDoc(docRef);
-        if (docSnap.exists()) {
+        const docSnap = await firestoreWithTimeout(window.firebaseGetDoc(docRef), 2500);
+        if (docSnap && docSnap.exists && docSnap.exists()) {
           const data = docSnap.data();
           if (data.products) products = data.products;
           if (data.categories) categories = data.categories;
@@ -369,7 +489,7 @@
           showToast('Sincronizado em tempo real com o Firestore', 'success');
         }
       } catch (err) {
-        console.warn('Direct Firestore fetch check complete.');
+        console.warn('Direct Firestore fetch check complete (offline fallback).');
       }
     }
 
@@ -433,6 +553,7 @@
                     <th class="p-4">Produto</th>
                     <th class="p-4">Categoria</th>
                     <th class="p-4">Preço PIX</th>
+                    <th class="p-4 text-center">Selos & Escassez</th>
                     <th class="p-4 text-right w-36">Ações</th>
                   </tr>
                 </thead>
@@ -454,22 +575,94 @@
                           <i data-lucide="grip-vertical" class="h-4 w-4 mx-auto"></i>
                         </td>
                         <td class="p-4">
-                          <img src="${p.image}" class="h-10 w-10 object-cover rounded-lg border border-stone-200 shadow-2xs" />
+                          <img src="${getAdminImageSrc(p.image)}" class="h-10 w-10 object-cover rounded-lg border border-stone-200 shadow-2xs" onerror="handleImageError(this);" />
                         </td>
-                        <td class="p-4 font-bold text-stone-900">${p.name}</td>
+                        <td class="p-4 font-bold text-stone-900">
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span>${p.name}</span>
+                            ${p.pinned ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Destaque</span>` : ''}
+                            ${p.isNovidade ? `<span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Novidade</span>` : ''}
+                            ${p.isMaisVendido ? `<span class="bg-indigo-100 text-indigo-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Mais Vendido</span>` : ''}
+                            ${p.hasTimer ? `<span class="bg-red-100 text-red-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase font-mono">Timer</span>` : ''}
+                            ${p.freteGratis ? `<span class="bg-teal-100 text-teal-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Frete Grátis</span>` : ''}
+                          </div>
+                        </td>
                         <td class="p-4 font-semibold text-stone-600">${catLabel}</td>
                         <td class="p-4 font-mono font-bold text-stone-950">
                           R$ ${getAdjustedPrice(p.id, p.startingPrice).toFixed(2).replace('.', ',')}
                         </td>
+                        <td class="p-4 text-center select-none" draggable="false" ondragstart="event.stopPropagation()">
+                          <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                            <button 
+                              onclick="toggleProductPin('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.pinned 
+                                  ? 'bg-amber-500 text-white border-amber-500 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.pinned ? 'Desativar DESTAQUE' : 'Ativar DESTAQUE'}"
+                            >
+                              <i data-lucide="pin" class="h-3 w-3"></i>
+                              <span>DESTAQUE</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductNovidade('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.isNovidade 
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.isNovidade ? 'Desativar NOVIDADE' : 'Ativar NOVIDADE'}"
+                            >
+                              <i data-lucide="sparkles" class="h-3 w-3"></i>
+                              <span>NOVIDADE</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductMaisVendido('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.isMaisVendido 
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.isMaisVendido ? 'Desativar MAIS VENDIDO' : 'Ativar MAIS VENDIDO'}"
+                            >
+                              <i data-lucide="flame" class="h-3 w-3"></i>
+                              <span>MAIS VENDIDO</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductTimer('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.hasTimer 
+                                  ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-red-500 shadow-2xs font-mono animate-pulse' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.hasTimer ? 'Desativar TIMER' : 'Ativar TIMER'}"
+                            >
+                              <i data-lucide="clock" class="h-3 w-3"></i>
+                              <span>${p.hasTimer ? `<span id="admin-timer-text-${p.id}">00:00:00</span>` : 'TIMER'}</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductFreteGratis('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.freteGratis 
+                                  ? 'bg-teal-600 text-white border-teal-600 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.freteGratis ? 'Desativar FRETE GRÁTIS' : 'Ativar FRETE GRÁTIS'}"
+                            >
+                              <i data-lucide="truck" class="h-3 w-3"></i>
+                              <span>FRETE GRÁTIS</span>
+                            </button>
+                          </div>
+                        </td>
                         <td class="p-4 text-right">
                           <div class="flex items-center justify-end gap-1.5" draggable="false" ondragstart="event.stopPropagation()">
-                            <button onclick="toggleProductPin('${p.id}')" class="p-2 rounded-lg transition cursor-pointer ${p.pinned ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600'}" title="${p.pinned ? 'Desafixar do topo' : 'Fixar no topo'}">
-                              <i data-lucide="pin" class="h-4 w-4 ${p.pinned ? 'fill-amber-600 text-amber-600' : ''}"></i>
-                            </button>
                             <button onclick="showProductForm('${p.id}')" class="p-2 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-amber-600 transition cursor-pointer" title="Editar">
                               <i data-lucide="pencil" class="h-4 w-4"></i>
                             </button>
                             <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Excluir">
+                              <i data-lucide="trash-2" class="h-4 w-4"></i>
+                            </button>
                               <i data-lucide="trash-2" class="h-4 w-4"></i>
                             </button>
                           </div>
@@ -504,7 +697,7 @@
                     id="rate-input-${i}" 
                     value="${rate}" 
                     class="w-full bg-transparent border-none text-xs font-bold text-stone-900 focus:outline-none focus:ring-0 p-0 font-mono"
-                    oninput="updateTaxasCalculatorDemo()"
+                    oninput="updateTaxasCalculatorDemo(); updateInstallmentRateLive(${i}, this.value)"
                   />
                   <span class="text-stone-400 font-bold text-xs">%</span>
                 </div>
@@ -560,7 +753,7 @@
             <div class="flex justify-end pt-2">
               <button onclick="saveInstallmentRates()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-3 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
                 <i data-lucide="check-circle-2" class="h-4 w-4"></i>
-                Confirmar e Salvar Configurações de Taxas
+                Salvar Taxas de Parcelamento
               </button>
             </div>
           </div>
@@ -648,18 +841,14 @@
       } else if (activeAdminTab === 'configuracoes') {
         container.innerHTML = `
           <div class="max-w-xl space-y-6">
-            <div class="bg-emerald-50 border border-emerald-200/60 p-6 rounded-2xl space-y-4 shadow-3xs">
-              <h4 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
-                <i data-lucide="cloud-lightning" class="h-4 w-4 text-emerald-600 animate-pulse"></i>
-                Sincronização Física no Servidor
+            <div class="bg-emerald-50 border border-emerald-200/60 p-6 rounded-2xl space-y-2 shadow-3xs">
+              <h4 class="text-xs font-black uppercase text-emerald-950 flex items-center gap-2">
+                <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600"></i>
+                Sincronização Automática Ativa
               </h4>
-              <p class="text-xs text-stone-600 leading-relaxed">
-                Este botão salva fisicamente todas as fotos, produtos e alterações de texto diretamente no arquivo <code class="bg-white text-stone-800 border border-stone-200 px-1 py-0.5 rounded font-mono">index.html</code> no servidor do site. Isso atualiza o código estático no seu GitHub!
+              <p class="text-xs text-emerald-900 leading-relaxed font-medium">
+                Todas as alterações de produtos, fotos, categorias e taxas são salvas instantaneamente e sincronizadas em tempo real no servidor e no banco de dados. Não é necessário clicar em botões manuais!
               </p>
-              <button onclick="certifyAndSaveGlobal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
-                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                Salvar Físico e Sincronizar Tudo
-              </button>
             </div>
 
             <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-4 shadow-3xs">
@@ -673,11 +862,11 @@
               <div class="grid gap-4 sm:grid-cols-2 text-xs">
                 <div>
                   <label class="block font-bold text-stone-700 mb-1">Título do Subtítulo (Descrição Explicativa)</label>
-                  <input type="text" id="config-desc-title" value="${extraFieldsConfig.descTitle || "Descrição Explicativa (Subtítulo)"}" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500" />
+                  <input type="text" id="config-desc-title" value="${extraFieldsConfig.descTitle || "Descrição Explicativa (Subtítulo)"}" oninput="updateExtraFieldsConfigLive('descTitle', this.value)" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500" />
                 </div>
                 <div>
                   <label class="block font-bold text-stone-700 mb-1">Título dos Destaques (Benefícios)</label>
-                  <input type="text" id="config-highlights-title" value="${extraFieldsConfig.highlightsTitle || "Destaques / Benefícios (Um por linha)"}" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500" />
+                  <input type="text" id="config-highlights-title" value="${extraFieldsConfig.highlightsTitle || "Destaques / Benefícios (Um por linha)"}" oninput="updateExtraFieldsConfigLive('highlightsTitle', this.value)" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500" />
                 </div>
               </div>
               <button onclick="saveExtraFieldsTitles()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition cursor-pointer">
@@ -730,6 +919,7 @@
                     id="vendedor-nome-input"
                     value="${sellerName}"
                     placeholder="Ex: Paulo Mendes"
+                    oninput="sellerName = this.value; handleAutoChange(true)"
                     class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none text-xs font-bold text-stone-800"
                   />
                 </div>
@@ -746,7 +936,7 @@
                     id="vendedor-whatsapp-input"
                     value="${sellerWhatsApp}"
                     placeholder="Ex: (66) 9.9699-2940"
-                    oninput="this.value = maskWhatsApp(this.value)"
+                    oninput="this.value = maskWhatsApp(this.value); sellerWhatsApp = this.value; const digits = this.value.replace(/\D/g, ''); if (digits.length >= 10) { let cleaned = digits; if (!cleaned.startsWith('55')) cleaned = '55' + cleaned; whatsAppNumber = cleaned; }; handleAutoChange(true)"
                     class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none text-xs font-mono font-bold text-stone-800"
                   />
                 </div>
@@ -756,7 +946,7 @@
             <div class="flex justify-end pt-2">
               <button onclick="saveSellerConfig()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-3 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
                 <i data-lucide="check-circle-2" class="h-4.5 w-4.5"></i>
-                Confirmar e Salvar Vendedor Ativo
+                Salvar Vendedor Ativo
               </button>
             </div>
           </div>
@@ -768,27 +958,37 @@
     // Unsaved Warning
     function updateUnsavedWarning() {
       const warningEl = document.getElementById('admin-unsaved-warning');
-      if (!warningEl) return;
-      if (pendingGlobalSave) {
-        warningEl.classList.remove('hidden');
-      } else {
-        warningEl.classList.add('hidden');
-      }
+      if (warningEl) warningEl.classList.add('hidden');
     }
 
     let autoSaveTimeout = null;
 
-    function handleAutoChange() {
-      pendingGlobalSave = true;
+    function handleAutoChange(noRender = false) {
+      pendingGlobalSave = false;
       updateUnsavedWarning();
-      renderAdminTabContent();
+      if (!noRender) {
+        renderAdminTabContent();
+      }
 
       if (autoSaveTimeout) {
         clearTimeout(autoSaveTimeout);
       }
       autoSaveTimeout = setTimeout(() => {
         certifyAndSaveGlobal(true);
-      }, 1500);
+      }, 300);
+    }
+
+    function updateInstallmentRateLive(i, val) {
+      let parsed = parseFloat(val.replace(',', '.'));
+      if (!isNaN(parsed) && parsed >= 0) {
+        installmentRates[i] = parsed;
+        handleAutoChange(true);
+      }
+    }
+
+    function updateExtraFieldsConfigLive(field, val) {
+      extraFieldsConfig[field] = val;
+      handleAutoChange(true);
     }
 
     // Save rates
@@ -967,11 +1167,22 @@
     }
 
     // Drag and drop for products table
+    function getClosestTr(target) {
+      if (!target) return null;
+      if (typeof target.closest === 'function') {
+        return target.closest('tr');
+      }
+      if (target.parentElement) {
+        return getClosestTr(target.parentElement);
+      }
+      return null;
+    }
+
     function handleDragStart(event, id) {
       dragSourceId = id;
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', id);
-      const tr = event.target.closest('tr');
+      const tr = getClosestTr(event.target);
       if (tr) {
         tr.classList.add('bg-amber-50/50', 'opacity-50');
       }
@@ -979,14 +1190,14 @@
 
     function handleDragOver(event) {
       event.preventDefault();
-      const tr = event.target.closest('tr');
+      const tr = getClosestTr(event.target);
       if (tr) {
         tr.classList.add('bg-amber-50/30', 'border-t-2', 'border-amber-500');
       }
     }
 
     function handleDragLeave(event) {
-      const tr = event.target.closest('tr');
+      const tr = getClosestTr(event.target);
       if (tr) {
         tr.classList.remove('bg-amber-50/30', 'border-t-2', 'border-amber-500');
       }
@@ -1023,6 +1234,69 @@
         handleAutoChange();
       }
     }
+
+    function toggleProductNovidade(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].isNovidade = !products[idx].isNovidade;
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductMaisVendido(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].isMaisVendido = !products[idx].isMaisVendido;
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductTimer(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].hasTimer = !products[idx].hasTimer;
+        if (products[idx].hasTimer) {
+          if (!products[idx].timerEndsAt || products[idx].timerEndsAt <= Date.now()) {
+            const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+            products[idx].timerEndsAt = Date.now() + randomMinutes * 60 * 1000;
+          }
+        }
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductFreteGratis(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].freteGratis = !products[idx].freteGratis;
+        handleAutoChange();
+      }
+    }
+
+    function updateLiveProductTimers() {
+      if (!products || !Array.isArray(products)) return;
+      const now = Date.now();
+      products.forEach(p => {
+        if (p.hasTimer) {
+          if (!p.timerEndsAt || p.timerEndsAt <= now) {
+            const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+            p.timerEndsAt = now + randomMinutes * 60 * 1000;
+          }
+          const remainingMs = p.timerEndsAt - now;
+          const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          const formatted = `${hours > 0 ? String(hours).padStart(2, '0') + ':' : ''}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+          
+          const el = document.getElementById(`timer-text-${p.id}`);
+          if (el) el.innerText = formatted;
+          const adminEl = document.getElementById(`admin-timer-text-${p.id}`);
+          if (adminEl) adminEl.innerText = formatted;
+        }
+      });
+    }
+    setInterval(updateLiveProductTimers, 1000);
 
     function deleteProduct(prodId) {
       showCustomConfirm(
@@ -1083,7 +1357,7 @@
       currentFormImages = [];
       if (p) {
         if (p.image) {
-          currentFormImages.push({ id: 'img-cover', src: p.image, isLocal: p.image.startsWith('data:'), isUploaded: false });
+          currentFormImages.push({ id: 'img-cover', src: formatImagePath(p.image), isLocal: p.image.startsWith('data:'), isUploaded: false });
         } else {
           currentFormImages.push({ id: 'img-cover', src: 'https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png', isLocal: false, isUploaded: false });
         }
@@ -1091,7 +1365,7 @@
         if (p.images && Array.isArray(p.images)) {
           p.images.forEach((img, idx) => {
             if (img && img.trim().length > 0) {
-              currentFormImages.push({ id: 'img-' + Date.now() + '-' + idx, src: img, isLocal: img.startsWith('data:'), isUploaded: false });
+              currentFormImages.push({ id: 'img-' + Date.now() + '-' + idx, src: formatImagePath(img), isLocal: img.startsWith('data:'), isUploaded: false });
             }
           });
         }
@@ -1149,17 +1423,19 @@
                 />
               </div>
  
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block font-bold text-stone-700 mb-1">Categoria</label>
-                  <select id="form-p-category" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-medium text-xs">
-                    ${categories.filter(c => c.id !== 'todos').map(c => `
-                      <option value="${c.id}" ${category === c.id ? 'selected' : ''}>${c.label}</option>
-                    `).join('')}
-                  </select>
-                </div>
-                <div class="flex flex-col justify-end">
-                  <label class="flex items-center gap-1.5 cursor-pointer bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl h-[38px] justify-center" title="Fixar produto no topo">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Categoria</label>
+                <select id="form-p-category" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-medium text-xs">
+                  ${categories.filter(c => c.id !== 'todos').map(c => `
+                    <option value="${c.id}" ${category === c.id ? 'selected' : ''}>${c.label}</option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Destaques e Selos do Produto</label>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <label class="flex items-center gap-1 cursor-pointer bg-amber-50 border border-amber-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Fixar produto no topo (Destaque)">
                     <input 
                       type="checkbox" 
                       id="form-p-pinned"
@@ -1167,7 +1443,55 @@
                       class="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-3.5 w-3.5"
                     />
                     <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-0.5">
-                      <i data-lucide="pin" class="h-3 w-3"></i> Fixar no Topo
+                      <i data-lucide="pin" class="h-3 w-3"></i> Fixar
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-emerald-50 border border-emerald-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar selo NOVIDADE">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-novidade"
+                      ${p && p.isNovidade ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="sparkles" class="h-3 w-3"></i> Novidade
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-indigo-50 border border-indigo-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar selo MAIS VENDIDO">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-maisvendido"
+                      ${p && p.isMaisVendido ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-indigo-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="flame" class="h-3 w-3"></i> Mais Vendido
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-red-50 border border-red-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar temporizador de escassez">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-timer"
+                      ${p && p.hasTimer ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-red-600 focus:ring-red-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-red-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="clock" class="h-3 w-3"></i> Timer
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-teal-50 border border-teal-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar selo FRETE GRÁTIS">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-fretegratis"
+                      ${p && p.freteGratis ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-teal-600 focus:ring-teal-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-teal-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="truck" class="h-3 w-3"></i> Frete Grátis
                     </span>
                   </label>
                 </div>
@@ -1226,7 +1550,7 @@
               Cancelar e Voltar
             </button>
             <button type="submit" form="product-admin-form" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer">
-              Confirmar Alterações
+              Salvar Produto
             </button>
           </div>
         </div>
@@ -1358,7 +1682,7 @@
       html += `
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
               <div class="sm:col-span-3 flex justify-center">
-                <img src="${coverSrc}" class="h-20 w-20 object-cover rounded-xl border border-stone-200 bg-white shadow-xs" id="preview-img-cover" />
+                <img src="${getAdminImageSrc(coverSrc)}" class="h-20 w-20 object-cover rounded-xl border border-stone-200 bg-white shadow-xs" id="preview-img-cover" />
               </div>
               <div class="sm:col-span-9 space-y-2">
                 <div>
@@ -1416,7 +1740,7 @@
                   </div>
 
                   <div class="relative shrink-0">
-                    <img src="${previewSrc}" class="h-14 w-14 object-cover rounded-lg border border-stone-200 bg-stone-50" id="preview-img-${actualIndex}" />
+                    <img src="${getAdminImageSrc(previewSrc)}" class="h-14 w-14 object-cover rounded-lg border border-stone-200 bg-stone-50" id="preview-img-${actualIndex}" />
                     <span class="absolute -top-1.5 -left-1.5 bg-stone-900 text-white text-[8px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow border border-stone-700">
                       ${idx + 1}
                     </span>
@@ -1499,7 +1823,7 @@
         
         const previewEl = document.getElementById(idx === 0 ? 'preview-img-cover' : `preview-img-${idx}`);
         if (previewEl) {
-          previewEl.src = url || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+          previewEl.src = getAdminImageSrc(url) || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
         }
       }
     }
@@ -1613,6 +1937,10 @@
       }
 
       const pinned = document.getElementById('form-p-pinned')?.checked || false;
+      const isNovidade = document.getElementById('form-p-novidade')?.checked || false;
+      const isMaisVendido = document.getElementById('form-p-maisvendido')?.checked || false;
+      const hasTimer = document.getElementById('form-p-timer')?.checked || false;
+      const freteGratis = document.getElementById('form-p-fretegratis')?.checked || false;
 
       const tempId = currentEditingProductId || ('product-' + Date.now());
       const startingPrice = reverseAdjustedPrice(tempId, targetPrice);
@@ -1633,7 +1961,7 @@
 
       // Save spinner
       const submitBtn = event.target.querySelector('button[type="submit"]');
-      const originalText = submitBtn ? submitBtn.innerText : 'Confirmar';
+      const originalText = submitBtn ? submitBtn.innerText : 'Salvar Produto';
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span class="inline-block h-3 w-3 border-2 border-stone-800 border-t-transparent rounded-full animate-spin mr-1"></span> Salvando imagens...`;
@@ -1645,18 +1973,14 @@
         const img = currentFormImages[i];
         if (img.src && img.src.startsWith('data:')) {
           try {
-            const uploadResponse = await fetch('/api/upload-image', {
+            const uploadResponse = await fetch(getApiUrl('/api/upload-image'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ base64: img.src })
             });
             const uploadResult = await uploadResponse.json();
             if (uploadResult.success && uploadResult.url) {
-              let absoluteUrl = uploadResult.url;
-              if (absoluteUrl.startsWith('/')) {
-                absoluteUrl = window.location.origin + absoluteUrl;
-              }
-              finalImageUrls.push(absoluteUrl);
+              finalImageUrls.push(makeRelativePath(uploadResult.url));
             } else {
               alert(`Falha no upload da imagem #${i+1}: ${uploadResult.error || 'Erro'}`);
               if (submitBtn) {
@@ -1675,11 +1999,7 @@
             return;
           }
         } else if (img.src && img.src.trim().length > 0) {
-          let trimmedSrc = img.src.trim();
-          if (trimmedSrc.startsWith('/')) {
-            trimmedSrc = window.location.origin + trimmedSrc;
-          }
-          finalImageUrls.push(trimmedSrc);
+          finalImageUrls.push(makeRelativePath(img.src));
         }
       }
 
@@ -1707,6 +2027,14 @@
           products[idx].techSpecs = techSpecs;
           products[idx].exactPrice = false;
           products[idx].pinned = pinned;
+          products[idx].isNovidade = isNovidade;
+          products[idx].isMaisVendido = isMaisVendido;
+          products[idx].hasTimer = hasTimer;
+          products[idx].freteGratis = freteGratis;
+          if (hasTimer && (!products[idx].timerEndsAt || products[idx].timerEndsAt <= Date.now())) {
+            const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+            products[idx].timerEndsAt = Date.now() + randomMinutes * 60 * 1000;
+          }
 
           const priceMultiplier = startingPrice / products[idx].popularSizes[0].price;
           products[idx].popularSizes.forEach(s => {
@@ -1714,6 +2042,11 @@
           });
         }
       } else {
+        let initialTimerEndsAt = null;
+        if (hasTimer) {
+          const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+          initialTimerEndsAt = Date.now() + randomMinutes * 60 * 1000;
+        }
         const newProduct = {
           id: tempId,
           name: name,
@@ -1737,7 +2070,12 @@
           entrega: entrega,
           techSpecs: techSpecs,
           exactPrice: false,
-          pinned: pinned
+          pinned: pinned,
+          isNovidade: isNovidade,
+          isMaisVendido: isMaisVendido,
+          hasTimer: hasTimer,
+          freteGratis: freteGratis,
+          timerEndsAt: initialTimerEndsAt
         };
         products.push(newProduct);
       }
@@ -1762,7 +2100,7 @@
       
       const dbSaved = await saveStateToFirestoreDirectly();
 
-      fetch('/api/save-state', {
+      fetch(getApiUrl('/api/save-state'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1842,7 +2180,7 @@
       }
       try {
         const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
-        await window.firebaseSetDoc(docRef, {
+        await firestoreWithTimeout(window.firebaseSetDoc(docRef, {
           products: products, 
           whatsAppNumber: whatsAppNumber, 
           categories: categories, 
@@ -1851,17 +2189,21 @@
           sellerName: sellerName,
           sellerWhatsApp: sellerWhatsApp,
           updatedAt: new Date().toISOString()
-        });
+        }), 2500);
         return true;
       } catch (err) {
-        console.error('[Firestore] Client save failed:', err);
+        console.warn('[Firestore] Client save in offline mode:', err.message || err);
         return false;
       }
     }
 
-    function handleHeaderSaveClick() {
-      certifyAndSaveGlobal();
+    async function goToWebsite() {
+      showToast('Sincronizando e voltando ao site...', 'success');
+      await certifyAndSaveGlobal(true);
+      window.location.href = '/';
     }
+    window.goToWebsite = goToWebsite;
+    window.handleHeaderSaveClick = goToWebsite;
 
     function closeGlobalSyncSuccess() {
       const successModal = document.getElementById('global-sync-success-modal');

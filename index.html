@@ -42,6 +42,73 @@
         }
       }
     }
+
+    // Global image error helper defined early to prevent ReferenceError
+    window.fallbackBackends = [
+      'https://ais-pre-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app',
+      'https://ais-dev-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app',
+      'https://storage.googleapis.com/gen-lang-client-0228564548.firebasestorage.app'
+    ];
+    window.backendUrl = 'https://ais-dev-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app';
+
+    function formatImagePath(url) {
+      if (!url) return '';
+      let clean = url.trim();
+      if (clean.startsWith('data:') || clean.startsWith('http://') || clean.startsWith('https://')) {
+        return clean;
+      }
+      if (!clean.startsWith('/')) {
+        clean = '/' + clean;
+      }
+      return clean;
+    }
+    window.formatImagePath = formatImagePath;
+
+    function handleImageError(img) {
+      if (!img) return;
+      
+      let fallbackIndex = parseInt(img.getAttribute('data-fallback-index') || '-1', 10);
+      let currentSrc = img.getAttribute('src') || img.src || '';
+      if (!currentSrc) {
+        img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+        return;
+      }
+
+      let isRelative = false;
+      let relPath = '';
+
+      if (currentSrc.includes('/IMGs/')) {
+        isRelative = true;
+        relPath = 'IMGs/' + currentSrc.split('/IMGs/')[1];
+      } else if (currentSrc.includes('/uploads/')) {
+        isRelative = true;
+        relPath = 'uploads/' + currentSrc.split('/uploads/')[1];
+      } else if (currentSrc.startsWith('IMGs/') || currentSrc.startsWith('uploads/')) {
+        isRelative = true;
+        relPath = currentSrc;
+      }
+
+      if (isRelative && relPath) {
+        fallbackIndex++;
+        if (fallbackIndex < window.fallbackBackends.length) {
+          const nextBackend = window.fallbackBackends[fallbackIndex];
+          img.setAttribute('data-fallback-index', fallbackIndex);
+          
+          if (nextBackend.includes('storage.googleapis.com')) {
+            const bucketName = 'gen-lang-client-0228564548.firebasestorage.app';
+            const encodedPath = encodeURIComponent(relPath);
+            img.src = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
+          } else {
+            const cleanBackend = nextBackend.endsWith('/') ? nextBackend : nextBackend + '/';
+            img.src = cleanBackend + relPath;
+          }
+          return;
+        }
+      }
+
+      img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+    }
+    window.handleImageError = handleImageError;
   </script>
 
   <style type="text/css">
@@ -448,7 +515,7 @@
             src="" 
             alt="" 
             onload="const loader = document.getElementById('modal-img-loader'); if (loader) { loader.style.opacity = '0'; loader.style.pointerEvents = 'none'; }" 
-            onerror="const loader = document.getElementById('modal-img-loader'); if (loader) { loader.style.opacity = '0'; loader.style.pointerEvents = 'none'; }" 
+            onerror="const loader = document.getElementById('modal-img-loader'); if (loader) { loader.style.opacity = '0'; loader.style.pointerEvents = 'none'; }; handleImageError(this);" 
             class="w-full h-full object-cover rounded-none transition-all duration-300"
             referrerpolicy="no-referrer"
           />
@@ -482,8 +549,28 @@
         <!-- Product Details Area Below Thumbnails (exibição limpa e clara) -->
         <div class="bg-stone-950 border-t border-stone-900 p-4 flex flex-col items-start justify-between gap-2.5 w-full">
           <div class="space-y-1 w-full">
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span id="modal-badge" class="bg-[#00a650] text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider">Categoria</span>
+              <span id="modal-destaque-badge" class="hidden bg-amber-500 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider flex items-center gap-1">
+                <i data-lucide="pin" class="h-2.5 w-2.5"></i>
+                <span>DESTAQUE</span>
+              </span>
+              <span id="modal-novidade-badge" class="hidden bg-emerald-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider flex items-center gap-1">
+                <i data-lucide="sparkles" class="h-2.5 w-2.5"></i>
+                <span>NOVIDADE</span>
+              </span>
+              <span id="modal-maisvendido-badge" class="hidden bg-indigo-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider flex items-center gap-1">
+                <i data-lucide="flame" class="h-2.5 w-2.5"></i>
+                <span>MAIS VENDIDO</span>
+              </span>
+              <span id="modal-timer-badge" class="hidden bg-gradient-to-r from-red-600 to-amber-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider font-mono animate-pulse flex items-center gap-1">
+                <i data-lucide="clock" class="h-2.5 w-2.5"></i>
+                <span id="modal-timer-text">00:00:00</span>
+              </span>
+              <span id="modal-frete-badge" class="hidden bg-teal-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider flex items-center gap-1">
+                <i data-lucide="truck" class="h-2.5 w-2.5"></i>
+                <span>FRETE GRÁTIS</span>
+              </span>
             </div>
             <h3 id="modal-title" class="font-display text-base font-bold text-white leading-tight">Nome do Espelho</h3>
             <div id="modal-desc" class="text-xs text-stone-300 space-y-0.5 font-medium leading-relaxed">Descrição rápida.</div>
@@ -752,12 +839,55 @@
   <!-- 12. APP CORE BUSINESS LOGIC STATE CONTROLLER -->
   <script type="text/javascript">
     // Core data state
+    // === BACKEND_URL_START ===
+    let backendUrl = 'https://ais-dev-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app';
+    // === BACKEND_URL_END ===
+    window.backendUrl = backendUrl;
+
+    function getApiUrl(path) {
+      if (!path) return '';
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+      }
+      const cleanPath = path.startsWith('/') ? path : '/' + path;
+      const bUrl = window.backendUrl || '';
+      if (!bUrl || window.location.origin === bUrl) {
+        return cleanPath;
+      }
+      const cleanBackend = bUrl.endsWith('/') ? bUrl.slice(0, -1) : bUrl;
+      return cleanBackend + cleanPath;
+    }
+    window.getApiUrl = getApiUrl;
+
+    function makeRelativePath(url) {
+      if (!url) return '';
+      let cleanUrl = url.trim();
+      if (cleanUrl.startsWith('https://firebasestorage.googleapis.com') || cleanUrl.startsWith('https://storage.googleapis.com')) {
+        return cleanUrl;
+      }
+      const prefixes = [
+        window.location.origin,
+        ...(window.fallbackBackends || []),
+        window.backendUrl || ''
+      ];
+      for (const prefix of prefixes) {
+        if (prefix && cleanUrl.startsWith(prefix)) {
+          cleanUrl = cleanUrl.substring(prefix.length);
+        }
+      }
+      if (!cleanUrl.startsWith('/') && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('data:')) {
+        cleanUrl = '/' + cleanUrl;
+      }
+      return cleanUrl;
+    }
+    window.makeRelativePath = makeRelativePath;
+
     // === WHATSAPP_START ===
     let whatsAppNumber = '5566996992940';
 // === WHATSAPP_END ===
 
     // === SELLER_START ===
-    let sellerName = 'Raul Meu Gatinho';
+    let sellerName = 'Paulo Mendes';
     let sellerWhatsApp = '(66) 9.9699-2940';
 // === SELLER_END ===
 
@@ -893,12 +1023,12 @@
     products = [
       {
             "id": "espelho-sol-geometrico",
-            "name": "ESPELHOS",
+            "name": "FRUTA DE GATO",
             "description": "Design artístico composto com raios metálicos dourados e espelho circular central.",
             "category": "classico",
             "startingPrice": 619.83,
             "rating": 4.6,
-            "image": "https://ais-dev-ftoald4bt73lkglmihtp62-136293402095.us-west1.run.app/uploads/img_1784558087366_389.jpg",
+            "image": "https://s2-ge.glbimg.com/QNVrmrIqZXDyvCEYVcheiUvTM-M=/0x0:2000x1333/984x0/smart/filters:strip_icc()/s.glbimg.com/es/ge/f/original/2019/12/16/gettyimages-1002807418_6ZXy7wF.jpg",
             "thicknessOptions": [
                   4
             ],
@@ -959,46 +1089,144 @@
                   }
             ],
             "exactPrice": false,
-            "pinned": false
+            "pinned": false,
+            "hasTimer": true,
+            "timerEndsAt": 1784686369212,
+            "isNovidade": true
       },
       {
-            "id": "espelho-duplo-lavabo",
-            "name": "Espelho Duplo Simétrico",
-            "description": "Conjunto ideal de dois espelhos verticais estreitos projetados para banheiros com bancada de duas cubas.",
-            "category": "sob-medida",
-            "startingPrice": 780,
-            "rating": 4.9,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
+            "id": "product-1784662958824",
+            "name": "TESTA_UM_NOVO_PRODUTO",
+            "description": "TESTE",
+            "category": "led",
+            "startingPrice": 754.92,
+            "rating": 4.8,
+            "image": "IMGs/img_1784681410228_4226.jpg",
+            "images": [],
             "thicknessOptions": [
                   4,
-                  5
+                  5,
+                  6
             ],
             "finishOptions": [
-                  "Lapidado",
-                  "Bisotado 10mm"
+                  "Lapidado com LED Integrado"
             ],
             "popularSizes": [
                   {
                         "width": 50,
-                        "height": 90,
-                        "price": 780
+                        "height": 70,
+                        "price": 755
                   },
                   {
                         "width": 60,
-                        "height": 110,
-                        "price": 1050
+                        "height": 80,
+                        "price": 1095
                   },
                   {
-                        "width": 70,
-                        "height": 130,
-                        "price": 1350
+                        "width": 80,
+                        "height": 100,
+                        "price": 1585
                   }
             ],
             "highlights": [
-                  "Kit completo com duas peças coordenadas",
-                  "Fixadores de alta precisão para alinhamento milimétrico",
-                  "Tratamento especial contra umidade nas bordas"
-            ]
+                  "Cristal de altíssima qualidade livre de cobre",
+                  "Espessura de segurança contra batidas",
+                  "Bordas lapidadas e polidas à perfeição"
+            ],
+            "measure": "50X70cm",
+            "lapidado": "Sim",
+            "comLed": "Sim",
+            "entrega": "Grátis",
+            "techSpecs": [
+                  {
+                        "label": "Medida",
+                        "value": "50X70cm"
+                  },
+                  {
+                        "label": "Lapidado",
+                        "value": "Sim"
+                  },
+                  {
+                        "label": "Com Led",
+                        "value": "Sim"
+                  },
+                  {
+                        "label": "Entrega",
+                        "value": "Grátis"
+                  }
+            ],
+            "exactPrice": false,
+            "pinned": true,
+            "hasTimer": true,
+            "timerEndsAt": 1784685954565,
+            "isNovidade": true
+      },
+      {
+            "id": "product-1784633310503",
+            "name": "RAÇÃO PARA GATOS",
+            "description": "TESTE",
+            "category": "led",
+            "startingPrice": 247.42,
+            "rating": 4.8,
+            "image": "https://premierpet.com.br/wp-content/uploads/2025/03/model-banner-linguagemcorporal-mobile-v1-1024x1024.png",
+            "images": [],
+            "thicknessOptions": [
+                  4,
+                  5,
+                  6
+            ],
+            "finishOptions": [
+                  "Lapidado com LED Integrado"
+            ],
+            "popularSizes": [
+                  {
+                        "width": 50,
+                        "height": 70,
+                        "price": 247
+                  },
+                  {
+                        "width": 60,
+                        "height": 80,
+                        "price": 359
+                  },
+                  {
+                        "width": 80,
+                        "height": 100,
+                        "price": 520
+                  }
+            ],
+            "highlights": [
+                  "Cristal de altíssima qualidade livre de cobre",
+                  "Espessura de segurança contra batidas",
+                  "Bordas lapidadas e polidas à perfeição"
+            ],
+            "measure": "50X70cm",
+            "lapidado": "Sim",
+            "comLed": "Sim",
+            "entrega": "Grátis",
+            "techSpecs": [
+                  {
+                        "label": "Medida",
+                        "value": "50X70cm"
+                  },
+                  {
+                        "label": "Lapidado",
+                        "value": "Sim"
+                  },
+                  {
+                        "label": "Com Led",
+                        "value": "Sim"
+                  },
+                  {
+                        "label": "Entrega",
+                        "value": "Grátis"
+                  }
+            ],
+            "exactPrice": false,
+            "pinned": true,
+            "isNovidade": true,
+            "hasTimer": true,
+            "timerEndsAt": 1784687123842
       },
       {
             "id": "espelho-octogonal-bronze",
@@ -1519,6 +1747,13 @@
       });
     }
 
+    function firestoreWithTimeout(promise, ms = 2500) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore connection timeout')), ms))
+      ]);
+    }
+
     async function loadStateFromFirestore() {
       if (!window.firebaseDb || !window.firebaseGetDoc || !window.firebaseDoc) {
         console.log('[Firestore] Client SDK elements not fully available yet.');
@@ -1527,8 +1762,8 @@
       try {
         console.log('[Firestore] Initiating client-side configuration fetch from Cloud Firestore...');
         const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
-        const docSnap = await window.firebaseGetDoc(docRef);
-        if (docSnap.exists()) {
+        const docSnap = await firestoreWithTimeout(window.firebaseGetDoc(docRef), 2500);
+        if (docSnap && docSnap.exists && docSnap.exists()) {
           const data = docSnap.data();
           console.log('[Firestore] Successfully retrieved configuration:', data);
           
@@ -1578,7 +1813,7 @@
           console.log('[Firestore] No dynamic configuration document found in Cloud Firestore. Operating in static fallback mode.');
         }
       } catch (err) {
-        console.error('[Firestore] Client-side fetch failed, operating in offline/static fallback mode:', err);
+        console.log('[Firestore] Client-side fetch fallback mode active (local server data loaded):', err.message || err);
       }
     }
 
@@ -1648,7 +1883,7 @@
     };
 
     function syncStateWithServer() {
-      fetch('/api/save-state', {
+      fetch(getApiUrl('/api/save-state'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -2487,7 +2722,7 @@
           });
         }
         const activeCardIdx = cardSlideIndices[p.id] || 0;
-        const displayCardImage = cardSlides[activeCardIdx] || p.image;
+        const displayCardImage = formatImagePath(cardSlides[activeCardIdx] || p.image);
 
         return `
           <div class="group relative overflow-hidden rounded-2xl border border-stone-200 bg-white p-3.5 shadow-xs transition hover:shadow-md flex flex-col justify-between scroll-reveal" style="transition-delay: ${(index % 4) * 75}ms">
@@ -2497,12 +2732,38 @@
                 <div class="absolute inset-0 flex items-center justify-center bg-stone-50 transition-opacity duration-300 z-10" id="card-loader-${p.id}">
                   <div class="h-5 w-5 animate-spin rounded-full border-2 border-stone-200 border-t-[#00a650]"></div>
                 </div>
-                ${p.pinned ? `
-                <div class="absolute top-2.5 left-2.5 flex items-center gap-1 bg-amber-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md z-20">
-                  <i data-lucide="pin" class="h-3 w-3"></i>
-                  <span>Destaque</span>
+                <div class="absolute top-2.5 left-2.5 flex flex-col items-start gap-1 z-20 pointer-events-none">
+                  ${p.pinned ? `
+                  <div class="flex items-center gap-1 bg-amber-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
+                    <i data-lucide="pin" class="h-3 w-3"></i>
+                    <span>Destaque</span>
+                  </div>
+                  ` : ''}
+                  ${p.isNovidade ? `
+                  <div class="flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
+                    <i data-lucide="sparkles" class="h-3 w-3"></i>
+                    <span>Novidade</span>
+                  </div>
+                  ` : ''}
+                  ${p.isMaisVendido ? `
+                  <div class="flex items-center gap-1 bg-indigo-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
+                    <i data-lucide="flame" class="h-3 w-3"></i>
+                    <span>Mais Vendido</span>
+                  </div>
+                  ` : ''}
+                  ${p.hasTimer ? `
+                  <div class="flex items-center gap-1 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md font-mono animate-pulse">
+                    <i data-lucide="clock" class="h-3 w-3"></i>
+                    <span id="timer-text-${p.id}">--:--:--</span>
+                  </div>
+                  ` : ''}
+                  ${p.freteGratis ? `
+                  <div class="flex items-center gap-1 bg-teal-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
+                    <i data-lucide="truck" class="h-3 w-3"></i>
+                    <span>Frete Grátis</span>
+                  </div>
+                  ` : ''}
                 </div>
-                ` : ''}
                 
                 <!-- Lupa (magnifying glass) in the top-right corner to open popup -->
                 <button onclick="openProductModal('${p.id}')" class="absolute top-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-stone-800 shadow-sm hover:bg-[#00a650] hover:text-white hover:scale-105 transition z-20 opacity-40 hover:opacity-100" title="Ver Detalhes">
@@ -2515,7 +2776,7 @@
                   alt="${p.name}" 
                   loading="lazy" 
                   onload="const loader = document.getElementById('card-loader-${p.id}'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 300); }" 
-                  onerror="const loader = document.getElementById('card-loader-${p.id}'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 300); }" 
+                  onerror="const loader = document.getElementById('card-loader-${p.id}'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 300); }; handleImageError(this);" 
                   class="h-full w-full object-cover transition-all duration-300" 
                   referrerpolicy="no-referrer"
                 />
@@ -2613,6 +2874,7 @@
       }
 
       lucide.createIcons();
+      updateLiveProductTimers();
       initScrollReveal();
     }
 
@@ -2662,7 +2924,7 @@
       }
 
       // Update image source
-      imgEl.src = currentModalSlides[currentModalSlideIndex];
+      imgEl.src = formatImagePath(currentModalSlides[currentModalSlideIndex]);
 
       // Trigger brightness transition effect (flash/glow of light)
       imgEl.classList.remove('animate-brightness-flash');
@@ -2691,7 +2953,7 @@
               ? 'border-[#00a650] scale-105 shadow-md ring-2 ring-[#00a650]/20' 
               : 'border-stone-800 hover:border-stone-500 hover:scale-102 opacity-70 hover:opacity-100'
           }">
-            <img src="${img}" class="h-full w-full object-cover" />
+            <img src="${formatImagePath(img)}" class="h-full w-full object-cover" onerror="handleImageError(this);" />
             ${idx === 0 ? '<span class="absolute top-0.5 left-0.5 bg-amber-500 text-stone-950 font-black text-[7px] px-1 rounded-sm uppercase tracking-tight">Capa</span>' : ''}
           </div>
         `).join('');
@@ -2726,7 +2988,7 @@
         document.body.removeChild(link);
       } else {
         // Since cross-origin requests might block fetch download, use fetch with blob first, fallback to open in new tab
-        fetch(src)
+        fetch(getApiUrl(src))
           .then(resp => {
             if (!resp.ok) throw new Error('Network response not ok');
             return resp.blob();
@@ -2840,6 +3102,38 @@
       }
       document.getElementById('modal-desc').innerHTML = formattedDesc;
       document.getElementById('modal-badge').innerText = selectedProduct.category;
+
+      const destaqueBadge = document.getElementById('modal-destaque-badge');
+      if (destaqueBadge) {
+        if (selectedProduct.pinned) destaqueBadge.classList.remove('hidden');
+        else destaqueBadge.classList.add('hidden');
+      }
+
+      const novidadeBadge = document.getElementById('modal-novidade-badge');
+      if (novidadeBadge) {
+        if (selectedProduct.isNovidade) novidadeBadge.classList.remove('hidden');
+        else novidadeBadge.classList.add('hidden');
+      }
+
+      const maisVendidoBadge = document.getElementById('modal-maisvendido-badge');
+      if (maisVendidoBadge) {
+        if (selectedProduct.isMaisVendido) maisVendidoBadge.classList.remove('hidden');
+        else maisVendidoBadge.classList.add('hidden');
+      }
+
+      const timerBadge = document.getElementById('modal-timer-badge');
+      if (timerBadge) {
+        if (selectedProduct.hasTimer) timerBadge.classList.remove('hidden');
+        else timerBadge.classList.add('hidden');
+      }
+
+      const freteBadge = document.getElementById('modal-frete-badge');
+      if (freteBadge) {
+        if (selectedProduct.freteGratis) freteBadge.classList.remove('hidden');
+        else freteBadge.classList.add('hidden');
+      }
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
 
       // Rendering Standard Sizing option buttons
       const sizeContainer = document.getElementById('modal-sizes-standard');
@@ -3147,20 +3441,7 @@
 
     function closeAdminPanel(event) {
       if (event) event.stopPropagation();
-
-      if (pendingGlobalSave) {
-        showCustomConfirm(
-          'Alterações Não Salvas',
-          'Você possui alterações pendentes de sincronização global no site. Para fechar o painel e aplicar de forma definitiva no servidor, você precisa clicar em <strong>Certificar alterações e Salvar Globalmente</strong>.',
-          'Sincronizar Agora',
-          false,
-          () => {
-            certifyAndSaveGlobal();
-          }
-        );
-        return;
-      }
-
+      certifyAndSaveGlobal(true);
       const modal = document.getElementById('admin-modal');
       if (modal) {
         modal.classList.add('opacity-0', 'pointer-events-none');
@@ -3171,6 +3452,7 @@
           card.classList.remove('scale-100');
         }
       }
+      window.location.href = '/';
     }
 
     function reverseAdjustedPrice(id, targetPrice) {
@@ -3304,6 +3586,7 @@
                     <th class="p-4">Produto</th>
                     <th class="p-4">Categoria</th>
                     <th class="p-4">Preço PIX</th>
+                    <th class="p-4 text-center">Selos & Escassez</th>
                     <th class="p-4 text-right w-36">Ações</th>
                   </tr>
                 </thead>
@@ -3326,14 +3609,34 @@
                           <i data-lucide="hand" class="h-4.5 w-4.5 mx-auto"></i>
                         </td>
                         <td class="p-4 select-none">
-                          <img src="${p.image}" class="h-12 w-12 rounded-lg object-cover border border-stone-200 bg-stone-100" referrerPolicy="no-referrer" />
+                          <img src="${formatImagePath(p.image)}" class="h-12 w-12 rounded-lg object-cover border border-stone-200 bg-stone-100" referrerPolicy="no-referrer" onerror="handleImageError(this);" />
                         </td>
                         <td class="p-4">
                           <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="font-extrabold text-stone-900">${p.name}</span>
                             ${p.pinned ? `
                               <span class="inline-flex items-center gap-0.5 bg-amber-50 text-amber-700 border border-amber-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
-                                <i data-lucide="pin" class="h-2.5 w-2.5 fill-amber-500"></i> Fixado
+                                <i data-lucide="pin" class="h-2.5 w-2.5 text-amber-600"></i> Destaque
+                              </span>
+                            ` : ''}
+                            ${p.isNovidade ? `
+                              <span class="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
+                                <i data-lucide="sparkles" class="h-2.5 w-2.5 text-emerald-600"></i> Novidade
+                              </span>
+                            ` : ''}
+                            ${p.isMaisVendido ? `
+                              <span class="inline-flex items-center gap-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
+                                <i data-lucide="flame" class="h-2.5 w-2.5 text-indigo-600"></i> Mais Vendido
+                              </span>
+                            ` : ''}
+                            ${p.hasTimer ? `
+                              <span class="inline-flex items-center gap-0.5 bg-red-50 text-red-700 border border-red-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none font-mono">
+                                <i data-lucide="clock" class="h-2.5 w-2.5 text-red-600"></i> Timer
+                              </span>
+                            ` : ''}
+                            ${p.freteGratis ? `
+                              <span class="inline-flex items-center gap-0.5 bg-teal-50 text-teal-700 border border-teal-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
+                                <i data-lucide="truck" class="h-2.5 w-2.5 text-teal-600"></i> Frete Grátis
                               </span>
                             ` : ''}
                           </div>
@@ -3343,11 +3646,72 @@
                         <td class="p-4 font-mono font-semibold text-stone-900 select-none">
                           R$ ${getAdjustedPrice(p.id, p.startingPrice).toFixed(2).replace('.', ',')}
                         </td>
+                        <td class="p-4 text-center select-none" draggable="false" ondragstart="event.stopPropagation()">
+                          <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                            <button 
+                              onclick="toggleProductPin('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.pinned 
+                                  ? 'bg-amber-500 text-white border-amber-500 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.pinned ? 'Desativar DESTAQUE' : 'Ativar DESTAQUE'}"
+                            >
+                              <i data-lucide="pin" class="h-3 w-3"></i>
+                              <span>DESTAQUE</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductNovidade('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.isNovidade 
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.isNovidade ? 'Desativar NOVIDADE' : 'Ativar NOVIDADE'}"
+                            >
+                              <i data-lucide="sparkles" class="h-3 w-3"></i>
+                              <span>NOVIDADE</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductMaisVendido('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.isMaisVendido 
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.isMaisVendido ? 'Desativar MAIS VENDIDO' : 'Ativar MAIS VENDIDO'}"
+                            >
+                              <i data-lucide="flame" class="h-3 w-3"></i>
+                              <span>MAIS VENDIDO</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductTimer('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.hasTimer 
+                                  ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-red-500 shadow-2xs font-mono animate-pulse' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.hasTimer ? 'Desativar TIMER' : 'Ativar TIMER'}"
+                            >
+                              <i data-lucide="clock" class="h-3 w-3"></i>
+                              <span>${p.hasTimer ? `<span id="admin-timer-text-${p.id}">00:00:00</span>` : 'TIMER'}</span>
+                            </button>
+                            <button 
+                              onclick="toggleProductFreteGratis('${p.id}')" 
+                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                                p.freteGratis 
+                                  ? 'bg-teal-600 text-white border-teal-600 shadow-2xs' 
+                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                              }" 
+                              title="${p.freteGratis ? 'Desativar FRETE GRÁTIS' : 'Ativar FRETE GRÁTIS'}"
+                            >
+                              <i data-lucide="truck" class="h-3 w-3"></i>
+                              <span>FRETE GRÁTIS</span>
+                            </button>
+                          </div>
+                        </td>
                         <td class="p-4 text-right select-none">
                           <div class="flex items-center justify-end gap-1.5" draggable="false" ondragstart="event.stopPropagation()">
-                            <button onclick="toggleProductPin('${p.id}')" class="p-2 rounded-lg transition cursor-pointer ${p.pinned ? 'text-amber-600 bg-amber-50 hover:bg-amber-100 hover:text-amber-700' : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600'}" title="${p.pinned ? 'Desafixar do topo' : 'Fixar no topo'}">
-                              <i data-lucide="${p.pinned ? 'pin' : 'pin'}" class="h-4 w-4 ${p.pinned ? 'fill-amber-600' : ''}"></i>
-                            </button>
                             <button onclick="showProductForm('${p.id}')" class="p-2 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-amber-600 transition cursor-pointer" title="Editar">
                               <i data-lucide="pencil" class="h-4 w-4"></i>
                             </button>
@@ -3445,7 +3809,7 @@
             <div class="flex justify-end pt-2">
               <button onclick="saveInstallmentRates()" class="bg-[#00a650] hover:bg-[#008f45] text-white font-extrabold text-xs px-6 py-3 rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md">
                 <i data-lucide="check-circle-2" class="h-4 w-4"></i>
-                Confirmar e Salvar Configurações de Taxas
+                Salvar Taxas de Parcelamento
               </button>
             </div>
           </div>
@@ -3793,7 +4157,7 @@
       try {
         console.log('[Firestore] Saving state directly from client...');
         const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
-        await window.firebaseSetDoc(docRef, {
+        await firestoreWithTimeout(window.firebaseSetDoc(docRef, {
           products: products, 
           whatsAppNumber: whatsAppNumber, 
           categories: categories, 
@@ -3802,11 +4166,11 @@
           sellerName: sellerName,
           sellerWhatsApp: sellerWhatsApp,
           updatedAt: new Date().toISOString()
-        });
+        }), 2500);
         console.log('[Firestore] State saved directly to Firestore config/main.');
         return true;
       } catch (err) {
-        console.error('[Firestore] Direct client-side save failed:', err);
+        console.warn('[Firestore] Direct client-side save in offline fallback mode:', err.message || err);
         return false;
       }
     }
@@ -3820,7 +4184,7 @@
       const dbSaved = await saveStateToFirestoreDirectly();
 
       // Next, update server local files (so changes sync back to the workspace for GitHub export)
-      fetch('/api/save-state', {
+      fetch(getApiUrl('/api/save-state'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -3901,11 +4265,22 @@
     }
 
     // HTML5 Drag and Drop Handlers
+    function getClosestTr(target) {
+      if (!target) return null;
+      if (typeof target.closest === 'function') {
+        return target.closest('tr');
+      }
+      if (target.parentElement) {
+        return getClosestTr(target.parentElement);
+      }
+      return null;
+    }
+
     function handleDragStart(event, id) {
       dragSourceId = id;
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', id);
-      const tr = event.target.closest('tr');
+      const tr = getClosestTr(event.target);
       if (tr) {
         tr.classList.add('bg-amber-50/50', 'opacity-50');
       }
@@ -3985,6 +4360,81 @@
         handleAutoChange();
       }
     }
+
+    function toggleProductPin(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].pinned = !products[idx].pinned;
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductNovidade(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].isNovidade = !products[idx].isNovidade;
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductMaisVendido(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].isMaisVendido = !products[idx].isMaisVendido;
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductTimer(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].hasTimer = !products[idx].hasTimer;
+        if (products[idx].hasTimer) {
+          if (!products[idx].timerEndsAt || products[idx].timerEndsAt <= Date.now()) {
+            const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+            products[idx].timerEndsAt = Date.now() + randomMinutes * 60 * 1000;
+          }
+        }
+        handleAutoChange();
+      }
+    }
+
+    function toggleProductFreteGratis(id) {
+      const idx = products.findIndex(p => String(p.id) === String(id));
+      if (idx !== -1) {
+        products[idx].freteGratis = !products[idx].freteGratis;
+        handleAutoChange();
+      }
+    }
+
+    function updateLiveProductTimers() {
+      if (!products || !Array.isArray(products)) return;
+      const now = Date.now();
+      products.forEach(p => {
+        if (p.hasTimer) {
+          if (!p.timerEndsAt || p.timerEndsAt <= now) {
+            const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+            p.timerEndsAt = now + randomMinutes * 60 * 1000;
+          }
+          const remainingMs = p.timerEndsAt - now;
+          const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          const formatted = `${hours > 0 ? String(hours).padStart(2, '0') + ':' : ''}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+          
+          const el = document.getElementById(`timer-text-${p.id}`);
+          if (el) el.innerText = formatted;
+          const adminEl = document.getElementById(`admin-timer-text-${p.id}`);
+          if (adminEl) adminEl.innerText = formatted;
+          if (selectedProduct && String(selectedProduct.id) === String(p.id)) {
+            const modalTimerEl = document.getElementById('modal-timer-text');
+            if (modalTimerEl) modalTimerEl.innerText = formatted;
+          }
+        }
+      });
+    }
+    setInterval(updateLiveProductTimers, 1000);
 
     let currentEditingCategoryId = null;
 
@@ -4249,7 +4699,7 @@
       currentFormImages = [];
       if (p) {
         if (p.image) {
-          currentFormImages.push({ id: 'img-cover', src: p.image, isLocal: p.image.startsWith('data:'), isUploaded: false });
+          currentFormImages.push({ id: 'img-cover', src: formatImagePath(p.image), isLocal: p.image.startsWith('data:'), isUploaded: false });
         } else {
           currentFormImages.push({ id: 'img-cover', src: 'https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png', isLocal: false, isUploaded: false });
         }
@@ -4257,7 +4707,7 @@
         if (p.images && Array.isArray(p.images)) {
           p.images.forEach((img, idx) => {
             if (img && img.trim().length > 0) {
-              currentFormImages.push({ id: 'img-' + Date.now() + '-' + idx, src: img, isLocal: img.startsWith('data:'), isUploaded: false });
+              currentFormImages.push({ id: 'img-' + Date.now() + '-' + idx, src: formatImagePath(img), isLocal: img.startsWith('data:'), isUploaded: false });
             }
           });
         }
@@ -4316,17 +4766,19 @@
                 />
               </div>
  
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block font-bold text-stone-700 mb-1">Categoria</label>
-                  <select id="form-p-category" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-medium">
-                    ${categories.filter(c => c.id !== 'todos').map(c => `
-                      <option value="${c.id}" ${category === c.id ? 'selected' : ''}>${c.label}</option>
-                    `).join('')}
-                  </select>
-                </div>
-                <div class="flex flex-col justify-end">
-                  <label class="flex items-center gap-1.5 cursor-pointer bg-amber-50 border border-amber-200 px-3 py-2.5 rounded-xl h-[38px] justify-center" title="Fixar produto no topo do catálogo de exibição">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Categoria</label>
+                <select id="form-p-category" class="w-full px-3 py-2 rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-white font-medium">
+                  ${categories.filter(c => c.id !== 'todos').map(c => `
+                    <option value="${c.id}" ${category === c.id ? 'selected' : ''}>${c.label}</option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Destaques e Selos do Produto</label>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <label class="flex items-center gap-1 cursor-pointer bg-amber-50 border border-amber-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Fixar produto no topo (Destaque)">
                     <input 
                       type="checkbox" 
                       id="form-p-pinned"
@@ -4334,7 +4786,55 @@
                       class="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-3.5 w-3.5"
                     />
                     <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-0.5">
-                      <i data-lucide="pin" class="h-3 w-3"></i> Fixar no Topo do Catálogo
+                      <i data-lucide="pin" class="h-3 w-3"></i> Fixar
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-emerald-50 border border-emerald-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar selo NOVIDADE">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-novidade"
+                      ${p && p.isNovidade ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="sparkles" class="h-3 w-3"></i> Novidade
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-indigo-50 border border-indigo-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar selo MAIS VENDIDO">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-maisvendido"
+                      ${p && p.isMaisVendido ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-indigo-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="flame" class="h-3 w-3"></i> Mais Vendido
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-red-50 border border-red-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar temporizador de escassez">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-timer"
+                      ${p && p.hasTimer ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-red-600 focus:ring-red-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-red-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="clock" class="h-3 w-3"></i> Timer
+                    </span>
+                  </label>
+
+                  <label class="flex items-center gap-1 cursor-pointer bg-teal-50 border border-teal-200 px-2 py-2 rounded-xl h-[38px] justify-center" title="Ativar selo FRETE GRÁTIS">
+                    <input 
+                      type="checkbox" 
+                      id="form-p-fretegratis"
+                      ${p && p.freteGratis ? 'checked' : ''} 
+                      class="rounded border-stone-300 text-teal-600 focus:ring-teal-500 h-3.5 w-3.5"
+                    />
+                    <span class="text-[10px] font-bold text-teal-800 uppercase tracking-wider flex items-center gap-0.5">
+                      <i data-lucide="truck" class="h-3 w-3"></i> Frete Grátis
                     </span>
                   </label>
                 </div>
@@ -4409,7 +4909,7 @@
       html += `
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
               <div class="sm:col-span-3 flex justify-center">
-                <img src="${coverSrc}" class="h-20 w-20 object-cover rounded-xl border border-stone-200 bg-white shadow-xs" id="preview-img-cover" />
+                <img src="${coverSrc}" class="h-20 w-20 object-cover rounded-xl border border-stone-200 bg-white shadow-xs" id="preview-img-cover" onerror="handleImageError(this);" />
               </div>
               <div class="sm:col-span-9 space-y-2">
                 <div>
@@ -4471,7 +4971,7 @@
                   </div>
 
                   <div class="relative shrink-0">
-                    <img src="${previewSrc}" class="h-14 w-14 object-cover rounded-lg border border-stone-100 bg-stone-50" id="preview-img-${actualIndex}" />
+                    <img src="${previewSrc}" class="h-14 w-14 object-cover rounded-lg border border-stone-100 bg-stone-50" id="preview-img-${actualIndex}" onerror="handleImageError(this);" />
                     <span class="absolute -top-1.5 -left-1.5 bg-stone-900 text-white text-[8px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow border border-stone-700">
                       ${idx + 1}
                     </span>
@@ -4641,6 +5141,10 @@
       const targetPrice = p ? getAdjustedPrice(p.id, p.startingPrice) : 450;
 
       const pinned = document.getElementById('form-p-pinned')?.checked || false;
+      const isNovidade = document.getElementById('form-p-novidade')?.checked || false;
+      const isMaisVendido = document.getElementById('form-p-maisvendido')?.checked || false;
+      const hasTimer = document.getElementById('form-p-timer')?.checked || false;
+      const freteGratis = document.getElementById('form-p-fretegratis')?.checked || false;
       const exactPrice = false;
 
       const tempId = currentEditingProductId || ('product-' + Date.now());
@@ -4674,18 +5178,14 @@
         const img = currentFormImages[i];
         if (img.src && img.src.startsWith('data:')) {
           try {
-            const uploadResponse = await fetch('/api/upload-image', {
+            const uploadResponse = await fetch(getApiUrl('/api/upload-image'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ base64: img.src })
             });
             const uploadResult = await uploadResponse.json();
             if (uploadResult.success && uploadResult.url) {
-              let absoluteUrl = uploadResult.url;
-              if (absoluteUrl.startsWith('/')) {
-                absoluteUrl = window.location.origin + absoluteUrl;
-              }
-              finalImageUrls.push(absoluteUrl);
+              finalImageUrls.push(makeRelativePath(uploadResult.url));
             } else {
               alert(`Falha ao fazer upload da imagem #${i+1} para o servidor: ${uploadResult.error || 'Erro desconhecido'}`);
               if (saveBtn) {
@@ -4704,11 +5204,7 @@
             return;
           }
         } else if (img.src && img.src.trim().length > 0) {
-          let trimmedSrc = img.src.trim();
-          if (trimmedSrc.startsWith('/')) {
-            trimmedSrc = window.location.origin + trimmedSrc;
-          }
-          finalImageUrls.push(trimmedSrc);
+          finalImageUrls.push(makeRelativePath(img.src));
         }
       }
 
@@ -4738,6 +5234,14 @@
           products[idx].techSpecs = techSpecs;
           products[idx].exactPrice = false;
           products[idx].pinned = pinned;
+          products[idx].isNovidade = isNovidade;
+          products[idx].isMaisVendido = isMaisVendido;
+          products[idx].hasTimer = hasTimer;
+          products[idx].freteGratis = freteGratis;
+          if (hasTimer && (!products[idx].timerEndsAt || products[idx].timerEndsAt <= Date.now())) {
+            const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+            products[idx].timerEndsAt = Date.now() + randomMinutes * 60 * 1000;
+          }
 
           // Re-calculate the relative prices for standard sizing based on base price shift
           const priceMultiplier = startingPrice / products[idx].popularSizes[0].price;
@@ -4747,6 +5251,11 @@
         }
       } else {
         // Add new product
+        let initialTimerEndsAt = null;
+        if (hasTimer) {
+          const randomMinutes = Math.floor(Math.random() * (120 - 15 + 1)) + 15;
+          initialTimerEndsAt = Date.now() + randomMinutes * 60 * 1000;
+        }
         const newId = tempId;
         const newProduct = {
           id: newId,
@@ -4771,7 +5280,12 @@
           entrega: entrega,
           techSpecs: techSpecs,
           exactPrice: false,
-          pinned: pinned
+          pinned: pinned,
+          isNovidade: isNovidade,
+          isMaisVendido: isMaisVendido,
+          hasTimer: hasTimer,
+          freteGratis: freteGratis,
+          timerEndsAt: initialTimerEndsAt
         };
         products.push(newProduct);
       }
@@ -4936,7 +5450,7 @@
 
       // 3. Make the API Call to the Server
       setTimeout(() => {
-        fetch('/api/save-state', {
+        fetch(getApiUrl('/api/save-state'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
