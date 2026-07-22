@@ -215,7 +215,7 @@
   <!-- 1. HEADER UTILITY & CONFIG BAR -->
   <div id="header-commercial-whatsapp-bar" class="bg-stone-950 text-[11px] text-stone-300 sticky top-0 z-50 border-b border-stone-800/60 h-8 flex items-center px-4">
     <div class="mx-auto flex w-full max-w-7xl items-center justify-between">
-      <div class="flex items-center gap-1.5 text-stone-200 font-medium tracking-wide">
+      <div id="comm-bar-whatsapp-text" class="flex items-center gap-1.5 text-stone-200 font-medium tracking-wide">
         <span class="h-1.5 w-1.5 rounded-full bg-[#00a650] animate-pulse"></span>
         <span>Atendimento Comercial Direto ao WhatsApp</span>
       </div>
@@ -223,16 +223,16 @@
         <span id="display-number" class="hidden"></span>
         <button
           id="admin-btn-config"
-          onclick="openAdminPanelToTab('vendedor')"
-          class="flex items-center gap-1 text-stone-400 hover:text-white transition text-[10px] font-medium tracking-wider uppercase border border-stone-800 px-2 py-0.5 rounded-md"
+          onclick="openAdminPanelToTab('vendedor', event)"
+          class="flex items-center gap-1 text-stone-400 hover:text-white transition text-[10px] font-medium tracking-wider uppercase border border-stone-800 px-2 py-0.5 rounded-md cursor-pointer"
         >
           <i data-lucide="settings" class="h-2.5 w-2.5"></i>
           Configurar
         </button>
         <button
           id="admin-btn-panel"
-          onclick="openAdminPanel()"
-          class="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-stone-950 px-2.5 py-0.5 rounded-md transition text-[10px] font-bold tracking-wider uppercase"
+          onclick="openAdminPanel(event)"
+          class="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-stone-950 px-2.5 py-0.5 rounded-md transition text-[10px] font-bold tracking-wider uppercase cursor-pointer shadow-xs"
         >
           <i data-lucide="lock" class="h-2.5 w-2.5"></i>
           Painel Admin
@@ -294,6 +294,10 @@
         <a href="#catalogo" class="hover:text-stone-900 transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-stone-950 hover:after:w-full after:transition-all after:duration-300">Catálogo</a>
         <a href="#avaliacoes" class="hover:text-stone-900 transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-stone-950 hover:after:w-full after:transition-all after:duration-300">Avaliações</a>
         <a href="#faq" class="hover:text-stone-900 transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-stone-950 hover:after:w-full after:transition-all after:duration-300">Dúvidas Frequentes</a>
+        <a href="/admin" onclick="openAdminPanel(event)" class="text-amber-700 hover:text-amber-800 font-extrabold transition-colors flex items-center gap-1 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg border border-amber-300/60 shadow-2xs">
+          <i data-lucide="lock" class="h-3 w-3 text-amber-700"></i>
+          Painel Admin
+        </a>
       </nav>
 
       <!-- CTA -->
@@ -321,6 +325,13 @@
         <a href="#avaliacoes" onclick="toggleMobileMenu()" class="text-xs font-bold uppercase tracking-wider text-stone-700 hover:text-stone-950">Avaliações</a>
         <a href="#faq" onclick="toggleMobileMenu()" class="text-xs font-bold uppercase tracking-wider text-stone-700 hover:text-stone-950">Perguntas</a>
         <hr class="border-stone-100" />
+        <button
+          onclick="openAdminPanel(); toggleMobileMenu();"
+          class="flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 py-3 text-xs font-bold uppercase tracking-widest text-stone-950 cursor-pointer shadow-sm"
+        >
+          <i data-lucide="lock" class="h-4 w-4"></i>
+          Painel Admin
+        </button>
         <button
           onclick="openWhatsAppGeneral(); toggleMobileMenu();"
           class="flex items-center justify-center gap-2 rounded-xl bg-stone-950 hover:bg-stone-900 py-3 text-xs font-bold uppercase tracking-widest text-white cursor-pointer"
@@ -854,12 +865,7 @@
         return path;
       }
       const cleanPath = path.startsWith('/') ? path : '/' + path;
-      const bUrl = window.backendUrl || '';
-      if (!bUrl || window.location.origin === bUrl) {
-        return cleanPath;
-      }
-      const cleanBackend = bUrl.endsWith('/') ? bUrl.slice(0, -1) : bUrl;
-      return cleanBackend + cleanPath;
+      return cleanPath;
     }
     window.getApiUrl = getApiUrl;
 
@@ -1002,13 +1008,13 @@
         }
       }
 
-      // WhatsApp Commercial support bar toggle
-      const commBar = document.getElementById('header-commercial-whatsapp-bar');
-      if (commBar) {
+      // WhatsApp Commercial support bar text toggle
+      const commText = document.getElementById('comm-bar-whatsapp-text');
+      if (commText) {
         if (visualConfig.showWhatsAppCommercialSupport === false) {
-          commBar.classList.add('hidden');
+          commText.classList.add('hidden');
         } else {
-          commBar.classList.remove('hidden');
+          commText.classList.remove('hidden');
         }
       }
 
@@ -1379,25 +1385,7 @@
       const yrEl = document.getElementById('current-year');
       if (yrEl) yrEl.innerText = new Date().getFullYear();
 
-      // Check if we are in the development/preview environment
-      const isDevEnv = 
-        window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1' || 
-        window.location.hostname === '0.0.0.0' || 
-        window.location.hostname.includes('ais-dev-') || 
-        window.location.hostname.includes('ais-pre-') || 
-        window.location.hostname.includes('run.app') ||
-        new URLSearchParams(window.location.search).has('admin') ||
-        window.location.hash === '#admin';
-
-      if (!isDevEnv) {
-        const adminBtn = document.getElementById('admin-btn-panel');
-        if (adminBtn) adminBtn.remove();
-        
-        const configBtn = document.getElementById('admin-btn-config');
-        if (configBtn) configBtn.remove();
-      }
-
+      // Mobile menu links container
       lucide.createIcons();
       initScrollReveal();
 

@@ -240,7 +240,16 @@ async function startServer() {
         return res.status(400).json({ success: false, error: "Invalid base64 format" });
       }
 
-      const extension = matches[1] === "jpeg" ? "jpg" : matches[1];
+      let rawExt = matches[1].toLowerCase();
+      let extension = rawExt;
+      if (rawExt === "jpeg") extension = "jpg";
+      else if (rawExt.includes("svg")) extension = "svg";
+      else if (rawExt.includes("icon") || rawExt.includes("ico")) extension = "ico";
+      else if (rawExt.includes("webp")) extension = "webp";
+      else if (rawExt.includes("png")) extension = "png";
+      else if (rawExt.includes("gif")) extension = "gif";
+      else if (rawExt.includes("avif")) extension = "avif";
+
       const buffer = Buffer.from(matches[2], "base64");
 
       // 1. ALWAYS write the file locally inside IMGs/ folder to allow GitHub / Vercel immediate sync
@@ -327,11 +336,26 @@ async function startServer() {
   }
 
   // Admin routing
-  app.get("/admin", (req: any, res: any) => {
-    res.sendFile(path.join(process.cwd(), "admin", "index.html"));
-  });
-  app.get("/admin/index.html", (req: any, res: any) => {
-    res.sendFile(path.join(process.cwd(), "admin", "index.html"));
+  app.get(["/admin", "/admin/", "/admin/index.html"], async (req: any, res: any, next: any) => {
+    const adminHtmlPath = path.join(process.cwd(), "admin", "index.html");
+    if (!fs.existsSync(adminHtmlPath)) {
+      return next();
+    }
+    try {
+      let html = fs.readFileSync(adminHtmlPath, "utf-8");
+
+      // Inject dynamic backendUrl
+      const host = req.get("host");
+      const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+      const currentBackendUrl = `${protocol}://${host}`;
+      const backendUrlStr = `    let backendUrl = '${currentBackendUrl}';`;
+      html = injectIntoHtml(html, "// === BACKEND_URL_START ===", "// === BACKEND_URL_END ===", backendUrlStr);
+
+      res.setHeader("Content-Type", "text/html");
+      return res.send(html);
+    } catch (err) {
+      return res.sendFile(adminHtmlPath);
+    }
   });
 
   // Get state handler
@@ -520,7 +544,7 @@ async function startServer() {
       // Load current state from Firestore to make sure the exported file has the latest data embedded
       const firestoreState = await getFirestoreState();
       if (firestoreState) {
-        const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp } = firestoreState;
+        const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp, visualConfig } = firestoreState;
 
         // Inject dynamic backendUrl
         const host = req.get("host");
@@ -552,6 +576,10 @@ async function startServer() {
         if (sellerName !== undefined && sellerWhatsApp !== undefined) {
           const sellerStr = `    let sellerName = '${sellerName}';\n    let sellerWhatsApp = '${sellerWhatsApp}';`;
           html = injectIntoHtml(html, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);
+        }
+        if (visualConfig) {
+          const visualConfigStr = `    let visualConfig = ${JSON.stringify(visualConfig, null, 6)};`;
+          html = injectIntoHtml(html, "// === VISUAL_START ===", "// === VISUAL_END ===", visualConfigStr);
         }
       }
 
@@ -584,7 +612,7 @@ async function startServer() {
       // Load State from Firestore (Google Cloud) dynamically on the fly
       const firestoreState = await getFirestoreState();
       if (firestoreState) {
-        const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp } = firestoreState;
+        const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp, visualConfig } = firestoreState;
 
         // Inject dynamic backendUrl
         const host = req.get("host");
@@ -616,6 +644,10 @@ async function startServer() {
         if (sellerName !== undefined && sellerWhatsApp !== undefined) {
           const sellerStr = `    let sellerName = '${sellerName}';\n    let sellerWhatsApp = '${sellerWhatsApp}';`;
           html = injectIntoHtml(html, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);
+        }
+        if (visualConfig) {
+          const visualConfigStr = `    let visualConfig = ${JSON.stringify(visualConfig, null, 6)};`;
+          html = injectIntoHtml(html, "// === VISUAL_START ===", "// === VISUAL_END ===", visualConfigStr);
         }
       }
 

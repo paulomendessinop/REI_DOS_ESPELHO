@@ -244,12 +244,7 @@
         return path;
       }
       const cleanPath = path.startsWith('/') ? path : '/' + path;
-      const bUrl = window.backendUrl || '';
-      if (!bUrl || window.location.origin === bUrl) {
-        return cleanPath;
-      }
-      const cleanBackend = bUrl.endsWith('/') ? bUrl.slice(0, -1) : bUrl;
-      return cleanBackend + cleanPath;
+      return cleanPath;
     }
     window.getApiUrl = getApiUrl;
 
@@ -604,14 +599,14 @@
           if (data.visualConfig) {
             visualConfig = Object.assign({}, defaultVisualConfig, data.visualConfig);
           }
-          
-          switchAdminTab(activeAdminTab);
         } else {
           showToast('Erro ao obter dados do servidor', 'error');
         }
       } catch (err) {
         console.error('Failed to fetch initial state:', err);
         showToast('Falha na comunicação com o servidor local', 'error');
+      } finally {
+        switchAdminTab(activeAdminTab);
       }
     }
 
