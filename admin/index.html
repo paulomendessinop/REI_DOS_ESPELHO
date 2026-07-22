@@ -290,13 +290,16 @@
       return formatImagePath(src);
     }
 
+    const NO_IMAGE_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><rect width='100%' height='100%' fill='%23f5f5f4'/><text x='50%' y='50%' font-family='sans-serif' font-size='28' font-weight='bold' fill='%23a8a29e' text-anchor='middle' dominant-baseline='middle'>Sem Foto</text></svg>";
+
     function handleImageError(img) {
       if (!img) return;
       
       let fallbackIndex = parseInt(img.getAttribute('data-fallback-index') || '-1', 10);
       let currentSrc = img.getAttribute('src') || img.src || '';
-      if (!currentSrc) {
-        img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+      if (!currentSrc || currentSrc.startsWith('data:image/svg+xml')) {
+        img.onerror = null;
+        img.src = NO_IMAGE_SVG;
         return;
       }
 
@@ -332,7 +335,8 @@
         }
       }
 
-      img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+      img.onerror = null;
+      img.src = NO_IMAGE_SVG;
     }
     window.handleImageError = handleImageError;
 
@@ -544,26 +548,31 @@
               </button>
             </div>
 
-            <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+            <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-2xs">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider">
-                    <th class="p-4 w-12 text-center">Ordem</th>
-                    <th class="p-4 w-20">Foto</th>
-                    <th class="p-4">Produto</th>
-                    <th class="p-4">Categoria</th>
-                    <th class="p-4">Preço PIX</th>
-                    <th class="p-4 text-center">Selos & Escassez</th>
-                    <th class="p-4 text-right w-36">Ações</th>
+                  <tr class="bg-stone-100/80 border-b border-stone-200 text-stone-500 font-extrabold uppercase tracking-wider text-[11px]">
+                    <th class="p-3 w-10 text-center border-r border-dashed border-stone-200">Nº</th>
+                    <th class="p-3 w-12 text-center border-r border-dashed border-stone-200">ORDEM</th>
+                    <th class="p-3 w-16 text-center border-r border-dashed border-stone-200">FOTO</th>
+                    <th class="p-3 border-r border-dashed border-stone-200">PRODUTO</th>
+                    <th class="p-3 border-r border-dashed border-stone-200">CATEGORIA</th>
+                    <th class="p-3 border-r border-dashed border-stone-200">PREÇO</th>
+                    <th class="p-3 text-center border-r border-dashed border-stone-200">SELOS</th>
+                    <th class="p-3 text-right w-28">AÇÕES</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-150">
-                  ${filtered.map((p, idx) => {
+                  ${filtered.length === 0 ? `
+                    <tr>
+                      <td colspan="8" class="p-10 text-center text-stone-400 font-medium">Nenhum produto cadastrado ou encontrado.</td>
+                    </tr>
+                  ` : filtered.map((p, idx) => {
                     const catObj = categories.find(c => c.id === p.category);
                     const catLabel = catObj ? catObj.label : p.category;
                     return `
                       <tr 
-                        class="hover:bg-stone-50/50 transition cursor-move"
+                        class="hover:bg-amber-50/30 transition cursor-move group"
                         draggable="true"
                         ondragstart="handleDragStart(event, '${p.id}')"
                         ondragover="handleDragOver(event)"
@@ -571,98 +580,95 @@
                         ondrop="handleDrop(event, '${p.id}')"
                         title="Arraste para reordenar"
                       >
-                        <td class="p-4 text-stone-400 text-center select-none">
+                        <td class="p-3 text-stone-400 font-mono font-bold text-center select-none border-r border-dashed border-stone-200 text-xs">
+                          ${idx + 1}
+                        </td>
+                        <td class="p-3 text-stone-300 group-hover:text-amber-600 text-center select-none border-r border-dashed border-stone-200" title="Arraste para reordenar">
                           <i data-lucide="grip-vertical" class="h-4 w-4 mx-auto"></i>
                         </td>
-                        <td class="p-4">
-                          <img src="${getAdminImageSrc(p.image)}" class="h-10 w-10 object-cover rounded-lg border border-stone-200 shadow-2xs" onerror="handleImageError(this);" />
+                        <td class="p-3 border-r border-dashed border-stone-200 text-center select-none">
+                          <img src="${getAdminImageSrc(p.image)}" class="h-10 w-10 object-cover rounded-lg border border-stone-200 shadow-2xs mx-auto bg-stone-50" onerror="handleImageError(this);" />
                         </td>
-                        <td class="p-4 font-bold text-stone-900">
+                        <td class="p-3 border-r border-dashed border-stone-200 font-bold text-stone-900">
                           <div class="flex items-center gap-1.5 flex-wrap">
-                            <span>${p.name}</span>
-                            ${p.pinned ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Destaque</span>` : ''}
-                            ${p.isNovidade ? `<span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Novidade</span>` : ''}
-                            ${p.isMaisVendido ? `<span class="bg-indigo-100 text-indigo-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Mais Vendido</span>` : ''}
-                            ${p.hasTimer ? `<span class="bg-red-100 text-red-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase font-mono">Timer</span>` : ''}
-                            ${p.freteGratis ? `<span class="bg-teal-100 text-teal-800 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">Frete Grátis</span>` : ''}
+                            <span class="text-xs font-bold text-stone-900">${p.name}</span>
+                            ${p.pinned ? `<span class="p-1 bg-amber-100 text-amber-800 rounded-md" title="DESTAQUE"><i data-lucide="pin" class="h-3 w-3"></i></span>` : ''}
+                            ${p.isNovidade ? `<span class="p-1 bg-emerald-100 text-emerald-800 rounded-md" title="NOVIDADE"><i data-lucide="sparkles" class="h-3 w-3"></i></span>` : ''}
+                            ${p.isMaisVendido ? `<span class="p-1 bg-indigo-100 text-indigo-800 rounded-md" title="MAIS VENDIDO"><i data-lucide="flame" class="h-3 w-3"></i></span>` : ''}
+                            ${p.hasTimer ? `<span class="p-1 bg-red-100 text-red-800 rounded-md font-mono" title="TIMER"><i data-lucide="clock" class="h-3 w-3"></i></span>` : ''}
+                            ${p.freteGratis ? `<span class="p-1 bg-teal-100 text-teal-800 rounded-md" title="FRETE GRÁTIS"><i data-lucide="truck" class="h-3 w-3"></i></span>` : ''}
                           </div>
+                          ${p.description ? `<div class="text-[10px] text-stone-400 line-clamp-1 mt-0.5 font-normal">${p.description}</div>` : ''}
                         </td>
-                        <td class="p-4 font-semibold text-stone-600">${catLabel}</td>
-                        <td class="p-4 font-mono font-bold text-stone-950">
+                        <td class="p-3 border-r border-dashed border-stone-200 font-semibold text-stone-600 text-xs">${catLabel}</td>
+                        <td class="p-3 border-r border-dashed border-stone-200 font-mono font-bold text-stone-950 text-xs whitespace-nowrap">
                           R$ ${getAdjustedPrice(p.id, p.startingPrice).toFixed(2).replace('.', ',')}
                         </td>
-                        <td class="p-4 text-center select-none" draggable="false" ondragstart="event.stopPropagation()">
-                          <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                        <td class="p-3 text-center border-r border-dashed border-stone-200 select-none" draggable="false" ondragstart="event.stopPropagation()">
+                          <div class="flex items-center justify-center gap-1">
                             <button 
                               onclick="toggleProductPin('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.pinned 
                                   ? 'bg-amber-500 text-white border-amber-500 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.pinned ? 'Desativar DESTAQUE' : 'Ativar DESTAQUE'}"
                             >
-                              <i data-lucide="pin" class="h-3 w-3"></i>
-                              <span>DESTAQUE</span>
+                              <i data-lucide="pin" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductNovidade('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.isNovidade 
                                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.isNovidade ? 'Desativar NOVIDADE' : 'Ativar NOVIDADE'}"
                             >
-                              <i data-lucide="sparkles" class="h-3 w-3"></i>
-                              <span>NOVIDADE</span>
+                              <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductMaisVendido('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.isMaisVendido 
                                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.isMaisVendido ? 'Desativar MAIS VENDIDO' : 'Ativar MAIS VENDIDO'}"
                             >
-                              <i data-lucide="flame" class="h-3 w-3"></i>
-                              <span>MAIS VENDIDO</span>
+                              <i data-lucide="flame" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductTimer('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.hasTimer 
-                                  ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-red-500 shadow-2xs font-mono animate-pulse' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-red-500 shadow-2xs animate-pulse' 
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.hasTimer ? 'Desativar TIMER' : 'Ativar TIMER'}"
                             >
-                              <i data-lucide="clock" class="h-3 w-3"></i>
-                              <span>${p.hasTimer ? `<span id="admin-timer-text-${p.id}">00:00:00</span>` : 'TIMER'}</span>
+                              <i data-lucide="clock" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductFreteGratis('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.freteGratis 
                                   ? 'bg-teal-600 text-white border-teal-600 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.freteGratis ? 'Desativar FRETE GRÁTIS' : 'Ativar FRETE GRÁTIS'}"
                             >
-                              <i data-lucide="truck" class="h-3 w-3"></i>
-                              <span>FRETE GRÁTIS</span>
+                              <i data-lucide="truck" class="h-3.5 w-3.5"></i>
                             </button>
                           </div>
                         </td>
-                        <td class="p-4 text-right">
-                          <div class="flex items-center justify-end gap-1.5" draggable="false" ondragstart="event.stopPropagation()">
+                        <td class="p-3 text-right">
+                          <div class="flex items-center justify-end gap-1" draggable="false" ondragstart="event.stopPropagation()">
                             <button onclick="showProductForm('${p.id}')" class="p-2 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-amber-600 transition cursor-pointer" title="Editar">
                               <i data-lucide="pencil" class="h-4 w-4"></i>
                             </button>
                             <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Excluir">
-                              <i data-lucide="trash-2" class="h-4 w-4"></i>
-                            </button>
                               <i data-lucide="trash-2" class="h-4 w-4"></i>
                             </button>
                           </div>
@@ -1730,7 +1736,7 @@
         galleryImages.forEach((img, idx) => {
           const actualIndex = idx + 1;
           const imgUrl = img.src || '';
-          const previewSrc = imgUrl || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+          const previewSrc = imgUrl || NO_IMAGE_SVG;
 
           html += `
               <div id="gallery-image-row-${actualIndex}" ondragover="allowImageDrop(event)" ondrop="dropImage(event, ${actualIndex})" class="p-3 bg-white border border-stone-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-stone-300 transition relative">
@@ -1823,7 +1829,7 @@
         
         const previewEl = document.getElementById(idx === 0 ? 'preview-img-cover' : `preview-img-${idx}`);
         if (previewEl) {
-          previewEl.src = getAdminImageSrc(url) || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+          previewEl.src = getAdminImageSrc(url) || NO_IMAGE_SVG;
         }
       }
     }

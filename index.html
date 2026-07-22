@@ -64,13 +64,16 @@
     }
     window.formatImagePath = formatImagePath;
 
+    const NO_IMAGE_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><rect width='100%' height='100%' fill='%23f5f5f4'/><text x='50%' y='50%' font-family='sans-serif' font-size='28' font-weight='bold' fill='%23a8a29e' text-anchor='middle' dominant-baseline='middle'>Sem Foto</text></svg>";
+
     function handleImageError(img) {
       if (!img) return;
       
       let fallbackIndex = parseInt(img.getAttribute('data-fallback-index') || '-1', 10);
       let currentSrc = img.getAttribute('src') || img.src || '';
-      if (!currentSrc) {
-        img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+      if (!currentSrc || currentSrc.startsWith('data:image/svg+xml')) {
+        img.onerror = null;
+        img.src = NO_IMAGE_SVG;
         return;
       }
 
@@ -90,7 +93,7 @@
 
       if (isRelative && relPath) {
         fallbackIndex++;
-        if (fallbackIndex < window.fallbackBackends.length) {
+        if (window.fallbackBackends && fallbackIndex < window.fallbackBackends.length) {
           const nextBackend = window.fallbackBackends[fallbackIndex];
           img.setAttribute('data-fallback-index', fallbackIndex);
           
@@ -106,7 +109,8 @@
         }
       }
 
-      img.src = 'https://placehold.co/600x600/f5f5f4/a8a29e?text=Sem+Foto';
+      img.onerror = null;
+      img.src = NO_IMAGE_SVG;
     }
     window.handleImageError = handleImageError;
   </script>
@@ -1022,86 +1026,13 @@
     // === PRODUCTS_START ===
     products = [
       {
-            "id": "espelho-sol-geometrico",
-            "name": "FRUTA DE GATO",
-            "description": "Design artístico composto com raios metálicos dourados e espelho circular central.",
-            "category": "classico",
-            "startingPrice": 619.83,
-            "rating": 4.6,
-            "image": "https://s2-ge.glbimg.com/QNVrmrIqZXDyvCEYVcheiUvTM-M=/0x0:2000x1333/984x0/smart/filters:strip_icc()/s.glbimg.com/es/ge/f/original/2019/12/16/gettyimages-1002807418_6ZXy7wF.jpg",
-            "thicknessOptions": [
-                  4
-            ],
-            "finishOptions": [
-                  "Decorativo"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 70,
-                        "height": 70,
-                        "price": 620
-                  },
-                  {
-                        "width": 90,
-                        "height": 90,
-                        "price": 820
-                  },
-                  {
-                        "width": 110,
-                        "height": 110,
-                        "price": 1150
-                  }
-            ],
-            "highlights": [
-                  "Raios metálicos com soldagem invisível",
-                  "Pintura eletrostática dourado metalizado",
-                  "Ponto focal artístico excelente para salas"
-            ],
-            "images": [
-                  "https://s.wsj.net/public/resources/images/BN-JS983_cover_J_20150806121655.jpg",
-                  "https://s.wsj.net/public/resources/images/BN-JS983_cover_J_20150806121655.jpg",
-                  "https://cdn.awsli.com.br/600x1000/2658/2658919/produto/257217253/fatia-de-bolo-vegano-de-brigadeiro-com-morangos-a3liq2p83s.png"
-            ],
-            "measure": "50X70cm",
-            "lapidado": "Sim",
-            "comLed": "Não",
-            "entrega": "Grátis",
-            "techSpecs": [
-                  {
-                        "label": "Lapidado",
-                        "value": "Sim"
-                  },
-                  {
-                        "label": "Expessura",
-                        "value": "3mm"
-                  },
-                  {
-                        "label": "Com Led",
-                        "value": "Não"
-                  },
-                  {
-                        "label": "Medida",
-                        "value": "50X70cm"
-                  },
-                  {
-                        "label": "Entrega",
-                        "value": "Grátis"
-                  }
-            ],
-            "exactPrice": false,
-            "pinned": false,
-            "hasTimer": true,
-            "timerEndsAt": 1784686369212,
-            "isNovidade": true
-      },
-      {
-            "id": "product-1784662958824",
-            "name": "TESTA_UM_NOVO_PRODUTO",
-            "description": "TESTE",
+            "id": "product-1784685932793",
+            "name": "Espelho Arqueado Slim",
+            "description": "Testando informações.",
             "category": "led",
-            "startingPrice": 754.92,
+            "startingPrice": 572.23,
             "rating": 4.8,
-            "image": "IMGs/img_1784681410228_4226.jpg",
+            "image": "https://s2.glbimg.com/Dm7Dhv5ExhULEye2EW8zRLlEb6c=/smart/e.glbimg.com/og/ed/f/original/2018/04/06/prem1.jpg",
             "images": [],
             "thicknessOptions": [
                   4,
@@ -1115,84 +1046,17 @@
                   {
                         "width": 50,
                         "height": 70,
-                        "price": 755
+                        "price": 572.23
                   },
                   {
                         "width": 60,
                         "height": 80,
-                        "price": 1095
+                        "price": 830
                   },
                   {
                         "width": 80,
                         "height": 100,
-                        "price": 1585
-                  }
-            ],
-            "highlights": [
-                  "Cristal de altíssima qualidade livre de cobre",
-                  "Espessura de segurança contra batidas",
-                  "Bordas lapidadas e polidas à perfeição"
-            ],
-            "measure": "50X70cm",
-            "lapidado": "Sim",
-            "comLed": "Sim",
-            "entrega": "Grátis",
-            "techSpecs": [
-                  {
-                        "label": "Medida",
-                        "value": "50X70cm"
-                  },
-                  {
-                        "label": "Lapidado",
-                        "value": "Sim"
-                  },
-                  {
-                        "label": "Com Led",
-                        "value": "Sim"
-                  },
-                  {
-                        "label": "Entrega",
-                        "value": "Grátis"
-                  }
-            ],
-            "exactPrice": false,
-            "pinned": true,
-            "hasTimer": true,
-            "timerEndsAt": 1784685954565,
-            "isNovidade": true
-      },
-      {
-            "id": "product-1784633310503",
-            "name": "RAÇÃO PARA GATOS",
-            "description": "TESTE",
-            "category": "led",
-            "startingPrice": 247.42,
-            "rating": 4.8,
-            "image": "https://premierpet.com.br/wp-content/uploads/2025/03/model-banner-linguagemcorporal-mobile-v1-1024x1024.png",
-            "images": [],
-            "thicknessOptions": [
-                  4,
-                  5,
-                  6
-            ],
-            "finishOptions": [
-                  "Lapidado com LED Integrado"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 50,
-                        "height": 70,
-                        "price": 247
-                  },
-                  {
-                        "width": 60,
-                        "height": 80,
-                        "price": 359
-                  },
-                  {
-                        "width": 80,
-                        "height": 100,
-                        "price": 520
+                        "price": 1202
                   }
             ],
             "highlights": [
@@ -1225,468 +1089,10 @@
             "exactPrice": false,
             "pinned": true,
             "isNovidade": true,
+            "isMaisVendido": true,
             "hasTimer": true,
-            "timerEndsAt": 1784687123842
-      },
-      {
-            "id": "espelho-octogonal-bronze",
-            "name": "Espelho Octogonal Bronze",
-            "description": "Vidro tonalizado na cor bronze com formato octogonal moderno lapidado. Toque quente e aconchegante.",
-            "category": "classico",
-            "startingPrice": 510,
-            "rating": 4.7,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Lapidado",
-                  "Bisotado 15mm"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 60,
-                        "height": 60,
-                        "price": 510
-                  },
-                  {
-                        "width": 80,
-                        "height": 80,
-                        "price": 720
-                  },
-                  {
-                        "width": 100,
-                        "height": 100,
-                        "price": 980
-                  }
-            ],
-            "highlights": [
-                  "Cristal bronze autêntico importado",
-                  "Formato geométrico lapidado de 8 lados",
-                  "Não distorce a imagem nem clareia excessivamente"
-            ]
-      },
-      {
-            "id": "espelho-camarim-vintage",
-            "name": "Espelho Camarim Retrô",
-            "description": "Lâmpadas de LED pontuais embutidas no perímetro do próprio vidro. Iluminação profissional sem sombras.",
-            "category": "led",
-            "startingPrice": 950,
-            "rating": 4.8,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  5,
-                  6
-            ],
-            "finishOptions": [
-                  "Lapidado com Moldura Camarim"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 70,
-                        "height": 90,
-                        "price": 950
-                  },
-                  {
-                        "width": 90,
-                        "height": 110,
-                        "price": 1350
-                  },
-                  {
-                        "width": 120,
-                        "height": 100,
-                        "price": 1850
-                  }
-            ],
-            "highlights": [
-                  "Luzes LED com difusores jateados integrados",
-                  "Controle de intensidade de brilho por toque",
-                  "Tom de luz ideal para fotos e maquiagem profissional"
-            ]
-      },
-      {
-            "id": "espelho-gota-suspenso",
-            "name": "Espelho Gota Suspenso",
-            "description": "Formato orgânico de gota sutil com alça metálica preta minimalista e botão de fixação moderno.",
-            "category": "organico",
-            "startingPrice": 430,
-            "rating": 4.8,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Lapidado com Alça Slim"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 50,
-                        "height": 80,
-                        "price": 430
-                  },
-                  {
-                        "width": 60,
-                        "height": 95,
-                        "price": 580
-                  },
-                  {
-                        "width": 80,
-                        "height": 120,
-                        "price": 790
-                  }
-            ],
-            "highlights": [
-                  "Moldura ultrafina em preto fosco",
-                  "Formato em gota fluída lapidada CNC",
-                  "Kit com pino metálico e bucha de alta performance"
-            ]
-      },
-      {
-            "id": "espelho-fume-lapidado",
-            "name": "Espelho Fumê Premium",
-            "description": "Espelho tonalizado cinza escuro (fumê). Fornece reflexão sofisticada e reduz excessos de iluminação.",
-            "category": "sob-medida",
-            "startingPrice": 242.58,
-            "rating": 4.6,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5,
-                  6
-            ],
-            "finishOptions": [
-                  "Lapidado Premium",
-                  "Bisotado 15mm"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 60,
-                        "height": 80,
-                        "price": 242.58
-                  },
-                  {
-                        "width": 80,
-                        "height": 110,
-                        "price": 342.96
-                  },
-                  {
-                        "width": 100,
-                        "height": 130,
-                        "price": 497.71
-                  }
-            ],
-            "highlights": [
-                  "Cristal fumê autêntico com brilho metálico",
-                  "Incrível para painéis de sala de TV e recepções",
-                  "Alta durabilidade e resistência contra riscos"
-            ],
-            "exactPrice": false
-      },
-      {
-            "id": "espelho-hexagonal-colmeia",
-            "name": "Espelho Colmeia Modular",
-            "description": "Kit com 3 espelhos hexagonais para criar padrões geométricos personalizados em sua parede de forma livre.",
-            "category": "classico",
-            "startingPrice": 390,
-            "rating": 4.7,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4
-            ],
-            "finishOptions": [
-                  "Lapidado",
-                  "Bisotado 10mm"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 40,
-                        "height": 35,
-                        "price": 390
-                  },
-                  {
-                        "width": 50,
-                        "height": 43,
-                        "price": 520
-                  },
-                  {
-                        "width": 60,
-                        "height": 52,
-                        "price": 690
-                  }
-            ],
-            "highlights": [
-                  "Kit modular de 3 peças independentes",
-                  "Bordas bisotadas que formam prisma na junção",
-                  "Fixação simplificada por fita dupla-face extra forte"
-            ]
-      },
-      {
-            "id": "espelho-oval-bisote",
-            "name": "Espelho Oval Acetinado",
-            "description": "Linhas ovais clássicas com elegante acabamento bisotado de 15mm. Suaviza cantos retos nos ambientes.",
-            "category": "classico",
-            "startingPrice": 340,
-            "rating": 4.8,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Bisotado 15mm"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 50,
-                        "height": 80,
-                        "price": 340
-                  },
-                  {
-                        "width": 60,
-                        "height": 95,
-                        "price": 470
-                  },
-                  {
-                        "width": 70,
-                        "height": 110,
-                        "price": 610
-                  }
-            ],
-            "highlights": [
-                  "Chanfro brilhante oval perfeito de precisão",
-                  "Ideal para acima de cômodas ou lavabos decorados",
-                  "Garantia de reflexão livre de distorções"
-            ]
-      },
-      {
-            "id": "espelho-painel-mosaico",
-            "name": "Espelho Painel Mosaico",
-            "description": "Painel completo constituído por múltiplos espelhos bisotados montados de forma quadriculada.",
-            "category": "sob-medida",
-            "startingPrice": 1250,
-            "rating": 4.9,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Bisotê Quadriculado"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 120,
-                        "height": 180,
-                        "price": 1250
-                  },
-                  {
-                        "width": 150,
-                        "height": 220,
-                        "price": 1950
-                  },
-                  {
-                        "width": 200,
-                        "height": 260,
-                        "price": 2980
-                  }
-            ],
-            "highlights": [
-                  "Composição de luxo ideal para salas de jantar inteiras",
-                  "Montagem executada sob medida e laser pela equipe",
-                  "Vidro ecológico super resistente de 5mm"
-            ]
-      },
-      {
-            "id": "espelho-organico-led",
-            "name": "Espelho Orgânico LED",
-            "description": "O melhor de dois mundos: curvas dinâmicas orgânicas modernas com luz difusa de LED embutida.",
-            "category": "led",
-            "startingPrice": 890,
-            "rating": 4.9,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Lapidado com LED"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 60,
-                        "height": 90,
-                        "price": 890
-                  },
-                  {
-                        "width": 80,
-                        "height": 120,
-                        "price": 1250
-                  },
-                  {
-                        "width": 100,
-                        "height": 140,
-                        "price": 1650
-                  }
-            ],
-            "highlights": [
-                  "Desenho de curvas suaves com fita LED embutida",
-                  "Estrutura embutida invisível que facilita o encaixe",
-                  "Garantia integral contra queima do driver de LED"
-            ]
-      },
-      {
-            "id": "espelho-moldura-madeira",
-            "name": "Espelho Rústico Madeira",
-            "description": "Moldura robusta em madeira nobre certificada com verniz marítimo de alta proteção contra umidade.",
-            "category": "classico",
-            "startingPrice": 720,
-            "rating": 4.7,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Com Moldura Rústica"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 70,
-                        "height": 100,
-                        "price": 720
-                  },
-                  {
-                        "width": 90,
-                        "height": 130,
-                        "price": 1100
-                  },
-                  {
-                        "width": 110,
-                        "height": 160,
-                        "price": 1550
-                  }
-            ],
-            "highlights": [
-                  "Moldura de madeira maciça de reflorestamento",
-                  "Protegido contra cupins e deformações",
-                  "Instalação robusta por parafusos duplos"
-            ]
-      },
-      {
-            "id": "espelho-puzzle-abstract",
-            "name": "Espelho Puzzle Abstrato",
-            "description": "Composição de espelho fragmentada que reflete a luz de ângulos distintos. Obra de arte para sua parede.",
-            "category": "organico",
-            "startingPrice": 680,
-            "rating": 4.8,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Lapidado Facetado"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 80,
-                        "height": 80,
-                        "price": 680
-                  },
-                  {
-                        "width": 100,
-                        "height": 100,
-                        "price": 920
-                  },
-                  {
-                        "width": 120,
-                        "height": 120,
-                        "price": 1280
-                  }
-            ],
-            "highlights": [
-                  "Design exclusivo de designer de interiores parceiro",
-                  "Bordas polidas à perfeição",
-                  "Cria pontos reflexivos ricos em salas de estar"
-            ]
-      },
-      {
-            "id": "espelho-barroco-gold",
-            "name": "Espelho Barroco Realeza",
-            "description": "Imponente moldura clássica barroca trabalhada em gesso com acabamento folheado em ouro.",
-            "category": "classico",
-            "startingPrice": 1100,
-            "rating": 4.9,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  4,
-                  5
-            ],
-            "finishOptions": [
-                  "Com Moldura Imperial"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 60,
-                        "height": 100,
-                        "price": 1100
-                  },
-                  {
-                        "width": 80,
-                        "height": 140,
-                        "price": 1650
-                  },
-                  {
-                        "width": 100,
-                        "height": 180,
-                        "price": 2300
-                  }
-            ],
-            "highlights": [
-                  "Trabalho artesanal de alto luxo",
-                  "Moldura esculpida de 12cm de largura",
-                  "Vidro cristal nacional de altíssima fidelidade"
-            ]
-      },
-      {
-            "id": "espelho-vertical-hall",
-            "name": "Espelho De Chão Real",
-            "description": "Grande painel vertical com estrutura autoportante que possibilita encostar diretamente no chão de halls e closets.",
-            "category": "sob-medida",
-            "startingPrice": 980,
-            "rating": 4.9,
-            "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
-            "thicknessOptions": [
-                  5,
-                  6
-            ],
-            "finishOptions": [
-                  "Lapidado com Apoio de Chão"
-            ],
-            "popularSizes": [
-                  {
-                        "width": 80,
-                        "height": 180,
-                        "price": 980
-                  },
-                  {
-                        "width": 100,
-                        "height": 200,
-                        "price": 1450
-                  },
-                  {
-                        "width": 120,
-                        "height": 220,
-                        "price": 1980
-                  }
-            ],
-            "highlights": [
-                  "Espessura de segurança contra batidas acidentais",
-                  "Pés traseiros revestidos com borracha antiderrapante",
-                  "Acompanha presilhas metálicas para ancoragem anti-tombamento"
-            ]
+            "freteGratis": true,
+            "timerEndsAt": 1784688992793
       }
 ];
 // === PRODUCTS_END ===
@@ -3577,141 +2983,120 @@
             </div>
 
             <!-- Products List -->
-            <div class="overflow-x-auto rounded-2xl border border-stone-100 bg-white">
+            <div class="overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-2xs">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="bg-stone-50 border-b border-stone-100 text-stone-500 font-bold uppercase tracking-wider">
-                    <th class="p-4 w-12 text-center">Ordem</th>
-                    <th class="p-4 w-20">Foto</th>
-                    <th class="p-4">Produto</th>
-                    <th class="p-4">Categoria</th>
-                    <th class="p-4">Preço PIX</th>
-                    <th class="p-4 text-center">Selos & Escassez</th>
-                    <th class="p-4 text-right w-36">Ações</th>
+                  <tr class="bg-stone-100/80 border-b border-stone-200 text-stone-500 font-extrabold uppercase tracking-wider text-[11px]">
+                    <th class="p-3 w-10 text-center border-r border-dashed border-stone-200">Nº</th>
+                    <th class="p-3 w-12 text-center border-r border-dashed border-stone-200">ORDEM</th>
+                    <th class="p-3 w-16 text-center border-r border-dashed border-stone-200">FOTO</th>
+                    <th class="p-3 border-r border-dashed border-stone-200">PRODUTO</th>
+                    <th class="p-3 border-r border-dashed border-stone-200">CATEGORIA</th>
+                    <th class="p-3 border-r border-dashed border-stone-200">PREÇO</th>
+                    <th class="p-3 text-center border-r border-dashed border-stone-200">SELOS</th>
+                    <th class="p-3 text-right w-28">AÇÕES</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-stone-100">
+                <tbody class="divide-y divide-stone-150">
                   ${filtered.length === 0 ? `
                     <tr>
-                      <td colspan="6" class="p-10 text-center text-stone-400">Nenhum produto cadastrado ou encontrado.</td>
+                      <td colspan="8" class="p-10 text-center text-stone-400 font-medium">Nenhum produto cadastrado ou encontrado.</td>
                     </tr>
-                  ` : filtered.map(p => {
+                  ` : filtered.map((p, idx) => {
                     const catLabel = categories.find(c => c.id === p.category)?.label || p.category;
                     return `
-                      <tr class="hover:bg-[#cdcdcd] transition duration-150 cursor-grab active:cursor-grabbing"
+                      <tr class="hover:bg-amber-50/30 transition cursor-grab active:cursor-grabbing group"
                           draggable="true"
                           ondragstart="handleDragStart(event, '${p.id}')"
                           ondragover="handleDragOver(event)"
                           ondragleave="handleDragLeave(event)"
                           ondrop="handleDrop(event, '${p.id}')"
                           title="Clique e arraste qualquer parte da linha para reordenar">
-                        <td class="p-4 text-stone-400 text-center select-none transition-all duration-150">
-                          <i data-lucide="hand" class="h-4.5 w-4.5 mx-auto"></i>
+                        <td class="p-3 text-stone-400 font-mono font-bold text-center select-none border-r border-dashed border-stone-200 text-xs">
+                          ${idx + 1}
                         </td>
-                        <td class="p-4 select-none">
-                          <img src="${formatImagePath(p.image)}" class="h-12 w-12 rounded-lg object-cover border border-stone-200 bg-stone-100" referrerPolicy="no-referrer" onerror="handleImageError(this);" />
+                        <td class="p-3 text-stone-300 group-hover:text-amber-600 text-center select-none border-r border-dashed border-stone-200">
+                          <i data-lucide="hand" class="h-4 w-4 mx-auto"></i>
                         </td>
-                        <td class="p-4">
+                        <td class="p-3 border-r border-dashed border-stone-200 text-center select-none">
+                          <img src="${formatImagePath(p.image)}" class="h-10 w-10 rounded-lg object-cover border border-stone-200 shadow-2xs mx-auto bg-stone-50" referrerPolicy="no-referrer" onerror="handleImageError(this);" />
+                        </td>
+                        <td class="p-3 border-r border-dashed border-stone-200 font-bold text-stone-900">
                           <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="font-extrabold text-stone-900">${p.name}</span>
-                            ${p.pinned ? `
-                              <span class="inline-flex items-center gap-0.5 bg-amber-50 text-amber-700 border border-amber-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
-                                <i data-lucide="pin" class="h-2.5 w-2.5 text-amber-600"></i> Destaque
-                              </span>
-                            ` : ''}
-                            ${p.isNovidade ? `
-                              <span class="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
-                                <i data-lucide="sparkles" class="h-2.5 w-2.5 text-emerald-600"></i> Novidade
-                              </span>
-                            ` : ''}
-                            ${p.isMaisVendido ? `
-                              <span class="inline-flex items-center gap-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
-                                <i data-lucide="flame" class="h-2.5 w-2.5 text-indigo-600"></i> Mais Vendido
-                              </span>
-                            ` : ''}
-                            ${p.hasTimer ? `
-                              <span class="inline-flex items-center gap-0.5 bg-red-50 text-red-700 border border-red-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none font-mono">
-                                <i data-lucide="clock" class="h-2.5 w-2.5 text-red-600"></i> Timer
-                              </span>
-                            ` : ''}
-                            ${p.freteGratis ? `
-                              <span class="inline-flex items-center gap-0.5 bg-teal-50 text-teal-700 border border-teal-200/60 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider select-none">
-                                <i data-lucide="truck" class="h-2.5 w-2.5 text-teal-600"></i> Frete Grátis
-                              </span>
-                            ` : ''}
+                            <span class="text-xs font-bold text-stone-900">${p.name}</span>
+                            ${p.pinned ? `<span class="p-1 bg-amber-100 text-amber-800 rounded-md" title="DESTAQUE"><i data-lucide="pin" class="h-3 w-3"></i></span>` : ''}
+                            ${p.isNovidade ? `<span class="p-1 bg-emerald-100 text-emerald-800 rounded-md" title="NOVIDADE"><i data-lucide="sparkles" class="h-3 w-3"></i></span>` : ''}
+                            ${p.isMaisVendido ? `<span class="p-1 bg-indigo-100 text-indigo-800 rounded-md" title="MAIS VENDIDO"><i data-lucide="flame" class="h-3 w-3"></i></span>` : ''}
+                            ${p.hasTimer ? `<span class="p-1 bg-red-100 text-red-800 rounded-md font-mono" title="TIMER"><i data-lucide="clock" class="h-3 w-3"></i></span>` : ''}
+                            ${p.freteGratis ? `<span class="p-1 bg-teal-100 text-teal-800 rounded-md" title="FRETE GRÁTIS"><i data-lucide="truck" class="h-3 w-3"></i></span>` : ''}
                           </div>
-                          <div class="text-[10px] text-stone-400 line-clamp-1 mt-0.5">${p.description}</div>
+                          ${p.description ? `<div class="text-[10px] text-stone-400 line-clamp-1 mt-0.5 font-normal">${p.description}</div>` : ''}
                         </td>
-                        <td class="p-4 font-semibold text-stone-600 select-none">${catLabel}</td>
-                        <td class="p-4 font-mono font-semibold text-stone-900 select-none">
+                        <td class="p-3 border-r border-dashed border-stone-200 font-semibold text-stone-600 text-xs select-none">${catLabel}</td>
+                        <td class="p-3 border-r border-dashed border-stone-200 font-mono font-bold text-stone-950 text-xs select-none whitespace-nowrap">
                           R$ ${getAdjustedPrice(p.id, p.startingPrice).toFixed(2).replace('.', ',')}
                         </td>
-                        <td class="p-4 text-center select-none" draggable="false" ondragstart="event.stopPropagation()">
-                          <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                        <td class="p-3 text-center border-r border-dashed border-stone-200 select-none" draggable="false" ondragstart="event.stopPropagation()">
+                          <div class="flex items-center justify-center gap-1">
                             <button 
                               onclick="toggleProductPin('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.pinned 
                                   ? 'bg-amber-500 text-white border-amber-500 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.pinned ? 'Desativar DESTAQUE' : 'Ativar DESTAQUE'}"
                             >
-                              <i data-lucide="pin" class="h-3 w-3"></i>
-                              <span>DESTAQUE</span>
+                              <i data-lucide="pin" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductNovidade('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.isNovidade 
                                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.isNovidade ? 'Desativar NOVIDADE' : 'Ativar NOVIDADE'}"
                             >
-                              <i data-lucide="sparkles" class="h-3 w-3"></i>
-                              <span>NOVIDADE</span>
+                              <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductMaisVendido('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.isMaisVendido 
                                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.isMaisVendido ? 'Desativar MAIS VENDIDO' : 'Ativar MAIS VENDIDO'}"
                             >
-                              <i data-lucide="flame" class="h-3 w-3"></i>
-                              <span>MAIS VENDIDO</span>
+                              <i data-lucide="flame" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductTimer('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.hasTimer 
-                                  ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-red-500 shadow-2xs font-mono animate-pulse' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-red-500 shadow-2xs animate-pulse' 
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.hasTimer ? 'Desativar TIMER' : 'Ativar TIMER'}"
                             >
-                              <i data-lucide="clock" class="h-3 w-3"></i>
-                              <span>${p.hasTimer ? `<span id="admin-timer-text-${p.id}">00:00:00</span>` : 'TIMER'}</span>
+                              <i data-lucide="clock" class="h-3.5 w-3.5"></i>
                             </button>
                             <button 
                               onclick="toggleProductFreteGratis('${p.id}')" 
-                              class="px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition cursor-pointer border ${
+                              class="p-2 rounded-lg transition cursor-pointer border ${
                                 p.freteGratis 
                                   ? 'bg-teal-600 text-white border-teal-600 shadow-2xs' 
-                                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
+                                  : 'bg-stone-100 text-stone-400 border-stone-200 hover:bg-stone-200 hover:text-stone-700'
                               }" 
                               title="${p.freteGratis ? 'Desativar FRETE GRÁTIS' : 'Ativar FRETE GRÁTIS'}"
                             >
-                              <i data-lucide="truck" class="h-3 w-3"></i>
-                              <span>FRETE GRÁTIS</span>
+                              <i data-lucide="truck" class="h-3.5 w-3.5"></i>
                             </button>
                           </div>
                         </td>
-                        <td class="p-4 text-right select-none">
-                          <div class="flex items-center justify-end gap-1.5" draggable="false" ondragstart="event.stopPropagation()">
+                        <td class="p-3 text-right select-none">
+                          <div class="flex items-center justify-end gap-1" draggable="false" ondragstart="event.stopPropagation()">
                             <button onclick="showProductForm('${p.id}')" class="p-2 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-amber-600 transition cursor-pointer" title="Editar">
                               <i data-lucide="pencil" class="h-4 w-4"></i>
                             </button>
@@ -4958,7 +4343,7 @@
         galleryImages.forEach((img, idx) => {
           const actualIndex = idx + 1; // index in currentFormImages
           const imgUrl = img.src || '';
-          const previewSrc = imgUrl || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+          const previewSrc = imgUrl || NO_IMAGE_SVG;
 
           html += `
               <div id="gallery-image-row-${actualIndex}" ondragover="allowImageDrop(event)" ondrop="dropImage(event, ${actualIndex})" class="p-3 bg-white border border-stone-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-stone-300 transition relative">
@@ -5057,7 +4442,7 @@
       }
       const previewImg = document.getElementById(idx === 0 ? 'preview-img-cover' : `preview-img-${idx}`);
       if (previewImg) {
-        previewImg.src = url || 'https://placehold.co/100x100/f5f5f4/a8a29e?text=Sem+Foto';
+        previewImg.src = url || NO_IMAGE_SVG;
       }
     }
 
