@@ -348,7 +348,8 @@ async function startServer() {
           installmentRates: firestoreState.installmentRates || {},
           extraFieldsConfig: firestoreState.extraFieldsConfig || {},
           sellerName: firestoreState.sellerName || "",
-          sellerWhatsApp: firestoreState.sellerWhatsApp || ""
+          sellerWhatsApp: firestoreState.sellerWhatsApp || "",
+          visualConfig: firestoreState.visualConfig || null
         });
       }
 
@@ -388,6 +389,7 @@ async function startServer() {
         const categories = extractVal("// === CATEGORIES_START ===", "// === CATEGORIES_END ===", /categories\s*=\s*([\s\S]+?);/, []);
         const installmentRates = extractVal("// === RATES_START ===", "// === RATES_END ===", /installmentRates\s*=\s*([\s\S]+?);/, {});
         const extraFieldsConfig = extractVal("// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", /extraFieldsConfig\s*=\s*([\s\S]+?);/, {});
+        const visualConfig = extractVal("// === VISUAL_START ===", "// === VISUAL_END ===", /visualConfig\s*=\s*([\s\S]+?);/, null);
         
         // Custom extract for seller variables
         let sellerName = "";
@@ -410,7 +412,8 @@ async function startServer() {
           installmentRates,
           extraFieldsConfig,
           sellerName,
-          sellerWhatsApp
+          sellerWhatsApp,
+          visualConfig
         });
       }
 
@@ -424,7 +427,7 @@ async function startServer() {
   // Save state handler (Cloud Sync & Local Cache)
   app.post("/api/save-state", async (req: any, res: any) => {
     try {
-      const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp } = req.body;
+      const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp, visualConfig } = req.body;
 
       if (!products || !whatsAppNumber || !categories || !installmentRates) {
         return res.status(400).json({ success: false, error: "Missing required fields" });
@@ -438,7 +441,8 @@ async function startServer() {
         installmentRates,
         extraFieldsConfig,
         sellerName,
-        sellerWhatsApp
+        sellerWhatsApp,
+        visualConfig
       });
 
       // Strings to inject locally as fallback
@@ -447,6 +451,7 @@ async function startServer() {
       const categoriesStr = `    let categories = ${JSON.stringify(categories, null, 6)};`;
       const ratesStr = `    let installmentRates = ${JSON.stringify(installmentRates, null, 6)};`;
       const extraFieldsStr = extraFieldsConfig ? `    let extraFieldsConfig = ${JSON.stringify(extraFieldsConfig, null, 6)};` : "";
+      const visualConfigStr = visualConfig ? `    let visualConfig = ${JSON.stringify(visualConfig, null, 6)};` : "";
       const sellerStr = (sellerName !== undefined && sellerWhatsApp !== undefined) 
         ? `    let sellerName = '${sellerName}';\n    let sellerWhatsApp = '${sellerWhatsApp}';`
         : "";
@@ -461,6 +466,9 @@ async function startServer() {
         replaceInFile(indexHtmlPath, "// === RATES_START ===", "// === RATES_END ===", ratesStr);
         if (extraFieldsStr) {
           replaceInFile(indexHtmlPath, "// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", extraFieldsStr);
+        }
+        if (visualConfigStr) {
+          replaceInFile(indexHtmlPath, "// === VISUAL_START ===", "// === VISUAL_END ===", visualConfigStr);
         }
         if (sellerStr) {
           replaceInFile(indexHtmlPath, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);
@@ -478,6 +486,9 @@ async function startServer() {
         replaceInFile(distHtmlPath, "// === RATES_START ===", "// === RATES_END ===", ratesStr);
         if (extraFieldsStr) {
           replaceInFile(distHtmlPath, "// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", extraFieldsStr);
+        }
+        if (visualConfigStr) {
+          replaceInFile(distHtmlPath, "// === VISUAL_START ===", "// === VISUAL_END ===", visualConfigStr);
         }
         if (sellerStr) {
           replaceInFile(distHtmlPath, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);

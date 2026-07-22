@@ -213,7 +213,7 @@
 <body class="bg-[#fafaf9] text-[#1c1917] font-sans antialiased custom-scroll">
 
   <!-- 1. HEADER UTILITY & CONFIG BAR -->
-  <div class="bg-stone-950 text-[11px] text-stone-300 sticky top-0 z-50 border-b border-stone-800/60 h-8 flex items-center px-4">
+  <div id="header-commercial-whatsapp-bar" class="bg-stone-950 text-[11px] text-stone-300 sticky top-0 z-50 border-b border-stone-800/60 h-8 flex items-center px-4">
     <div class="mx-auto flex w-full max-w-7xl items-center justify-between">
       <div class="flex items-center gap-1.5 text-stone-200 font-medium tracking-wide">
         <span class="h-1.5 w-1.5 rounded-full bg-[#00a650] animate-pulse"></span>
@@ -278,7 +278,7 @@
     <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
       
       <!-- Brand Logo -->
-      <a href="#" class="flex items-center gap-3 group">
+      <a href="#" id="site-header-logo-container" class="flex items-center gap-3 group">
         <div class="relative flex h-8 w-8 items-center justify-center border border-amber-500/50 rotate-45 transition-all duration-500 group-hover:rotate-90 bg-stone-950 text-white rounded-md shadow-xs">
           <span class="-rotate-45 font-display text-xs font-semibold tracking-tight text-amber-100">C</span>
           <span class="absolute right-0 bottom-0 h-1.5 w-1.5 rounded-full bg-emerald-500 border border-stone-950 animate-pulse"></span>
@@ -297,7 +297,7 @@
       </nav>
 
       <!-- CTA -->
-      <div class="hidden md:block">
+      <div class="hidden md:block" id="header-direct-support-btn">
         <button
           onclick="openWhatsAppGeneral()"
           class="flex items-center gap-1.5 rounded-full border border-stone-900 bg-transparent hover:bg-stone-900 text-stone-900 hover:text-white px-4.5 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 shadow-xs"
@@ -479,10 +479,10 @@
       <span class="inline-flex items-center gap-1 bg-stone-100 px-3 py-1 text-xs font-semibold rounded-full text-stone-700">
         <i data-lucide="help-circle" class="h-3.5 w-3.5"></i> Suporte ao Cliente
       </span>
-      <h2 class="font-display mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+      <h2 id="faq-section-title" class="font-display mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
         Dúvidas Frequentes
       </h2>
-      <p class="mt-2 text-sm text-stone-500">
+      <p id="faq-section-sub" class="mt-2 text-sm text-stone-500">
         Tire suas dúvidas rápidas sobre a produção, instalação ou transporte do seu cristal de espelho.
       </p>
     </div>
@@ -783,9 +783,9 @@
         <div class="md:col-span-5 space-y-4">
           <div class="flex items-center gap-2">
             <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-stone-900 font-display font-black text-lg">C</div>
-            <span class="font-display text-lg font-bold text-white tracking-tight">Cristal Art - Vidraçaria</span>
+            <span id="footer-brand-title" class="font-display text-lg font-bold text-white tracking-tight">Cristal Art - Vidraçaria</span>
           </div>
-          <p class="text-xs text-stone-400 leading-relaxed max-w-sm">
+          <p id="footer-brand-desc" class="text-xs text-stone-400 leading-relaxed max-w-sm">
             Especialistas em transformar espaços através de lapidações, bisotês e espelhos decorativos premium sob medida. Equipamentos modernos CNC de altíssima fidelidade de imagem.
           </p>
           <div class="flex items-center gap-2 text-xs text-[#00a650] font-semibold bg-[#00a650]/10 border border-[#00a650]/20 px-3 py-1.5 rounded-lg w-max">
@@ -833,7 +833,7 @@
       </div>
 
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
-        <span>© <span id="current-year"></span> Cristal Art Espelhos. Todos os direitos reservados.</span>
+        <span id="footer-copyright-text">© <span id="current-year"></span> Cristal Art Espelhos. Todos os direitos reservados.</span>
         <span class="flex items-center gap-1">Desenvolvido com carinho para Cuiabá, Várzea Grande e Região Metopolitana. <i data-lucide="heart" class="h-3 w-3 text-red-500 fill-red-500"></i></span>
       </div>
 
@@ -903,6 +903,130 @@
 // === EXTRA_FIELDS_END ===
 
     // Always use the server-injected extraFieldsConfig as the master source of truth, keeping localStorage updated
+    localStorage.setItem('cristal_art_extra_fields', JSON.stringify(extraFieldsConfig));
+
+    // === VISUAL_START ===
+    let visualConfig = {
+      textColor: '#1c1917',
+      buttonBg: '#d97706',
+      buttonText: '#ffffff',
+      buttonHoverBg: '#b45309',
+      categoryBtnBg: '#f5f5f4',
+      categoryBtnText: '#44403c',
+      categoryBtnActiveBg: '#1c1917',
+      categoryBtnActiveText: '#ffffff',
+      footerBg: '#0c0a09',
+      footerTextColor: '#a8a29e',
+
+      footerTitle: 'CRISTAL ART ESPELHOS',
+      footerDesc: 'Estúdio Boutique de Vidros e Espelhos. Excelência em espelhos lapidados, bisotados e iluminação LED sob medida.',
+      footerCopyright: '© 2026 Cristal Art Espelhos. Todos os direitos reservados.',
+
+      showDirectSupportBtn: true,
+      showWhatsAppCommercialSupport: true,
+
+      logoType: 'text',
+      logoText: 'CRISTAL ART',
+      logoSubtext: 'ESTÚDIO BOUTIQUE',
+      logoImageUrl: '',
+
+      headerStyle: 'classic',
+      slideInterval: 5,
+      fontSizeScale: 'normal',
+
+      faqTitle: 'Dúvidas Frequentes',
+      faqSub: 'Tudo o que você precisa saber sobre a fabricação, prazo e instalação dos nossos espelhos',
+      faqStyle: 'accordion',
+      faqItems: [
+        { question: 'Vocês fazem instalação dos espelhos em Cuiabá e Várzea Grande?', answer: 'Sim! Temos uma equipe técnica especializada para realizar a entrega e instalação segura na região metropolitana de Cuiabá e Várzea Grande.' },
+        { question: 'Qual a diferença entre espelho lapidado e espelho bisotado?', answer: 'O espelho lapidado tem as bordas polidas lisas e seguras. O bisotado recebe um chanfro inclinado nas bordas que gera uma linda moldura reflexiva facetada no próprio vidro.' },
+        { question: 'Os espelhos mancham ou oxidam?', answer: 'Não. Trabalhamos apenas com cristais de altíssima qualidade com fabricação moderna sem cobre ou chumbo, aumentando em 10 vezes a durabilidade contra oxidação.' }
+      ]
+    };
+    // === VISUAL_END ===
+
+    function applyVisualConfig() {
+      if (!visualConfig) return;
+      
+      // Dynamic CSS Variables
+      let styleTag = document.getElementById('dynamic-visual-style-tag');
+      if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'dynamic-visual-style-tag';
+        document.head.appendChild(styleTag);
+      }
+
+      styleTag.innerHTML = `
+        :root {
+          --custom-text-color: ${visualConfig.textColor || '#1c1917'};
+          --custom-btn-bg: ${visualConfig.buttonBg || '#d97706'};
+          --custom-btn-hover-bg: ${visualConfig.buttonHoverBg || '#b45309'};
+          --custom-btn-text: ${visualConfig.buttonText || '#ffffff'};
+          --custom-cat-bg: ${visualConfig.categoryBtnBg || '#f5f5f4'};
+          --custom-cat-active-bg: ${visualConfig.categoryBtnActiveBg || '#1c1917'};
+          --custom-footer-bg: ${visualConfig.footerBg || '#0c0a09'};
+          --custom-footer-text: ${visualConfig.footerTextColor || '#a8a29e'};
+        }
+        ${visualConfig.fontSizeScale === 'small' ? 'body { font-size: 90%; }' : visualConfig.fontSizeScale === 'large' ? 'body { font-size: 110%; }' : ''}
+      `;
+
+      // Header logo & text updates
+      const logoContainer = document.getElementById('site-header-logo-container');
+      if (logoContainer) {
+        if (visualConfig.logoType === 'image' && visualConfig.logoImageUrl) {
+          logoContainer.innerHTML = `
+            <img src="${formatImagePath(visualConfig.logoImageUrl)}" alt="${visualConfig.logoText || 'Logo'}" class="h-10 sm:h-12 w-auto object-contain" onerror="this.onerror=null; this.src='/placeholder.jpg';" />
+          `;
+        } else {
+          logoContainer.innerHTML = `
+            <div class="flex items-center gap-2">
+              <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-md font-black text-base">
+                C
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm font-black tracking-widest text-stone-900 leading-none uppercase">${visualConfig.logoText || 'CRISTAL ART'}</span>
+                <span class="text-[9px] font-bold tracking-widest text-amber-700 uppercase leading-tight mt-0.5">${visualConfig.logoSubtext || 'ESTÚDIO BOUTIQUE'}</span>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Direct support button toggle
+      const directSupportBtn = document.getElementById('header-direct-support-btn');
+      if (directSupportBtn) {
+        if (visualConfig.showDirectSupportBtn === false) {
+          directSupportBtn.classList.add('hidden');
+        } else {
+          directSupportBtn.classList.remove('hidden');
+        }
+      }
+
+      // WhatsApp Commercial support bar toggle
+      const commBar = document.getElementById('header-commercial-whatsapp-bar');
+      if (commBar) {
+        if (visualConfig.showWhatsAppCommercialSupport === false) {
+          commBar.classList.add('hidden');
+        } else {
+          commBar.classList.remove('hidden');
+        }
+      }
+
+      // Footer texts
+      const footerTitleEl = document.getElementById('footer-brand-title');
+      if (footerTitleEl && visualConfig.footerTitle) footerTitleEl.innerText = visualConfig.footerTitle;
+
+      const footerDescEl = document.getElementById('footer-brand-desc');
+      if (footerDescEl && visualConfig.footerDesc) footerDescEl.innerText = visualConfig.footerDesc;
+
+      const footerCopyEl = document.getElementById('footer-copyright-text');
+      if (footerCopyEl && visualConfig.footerCopyright) {
+        const yr = new Date().getFullYear();
+        footerCopyEl.innerHTML = visualConfig.footerCopyright.replace('{year}', yr);
+      }
+
+      renderFAQ();
+    }
     localStorage.setItem('cristal_art_extra_fields', JSON.stringify(extraFieldsConfig));
     let currentCategory = 'todos';
     let products = [];
@@ -1030,10 +1154,13 @@
             "name": "Espelho Arqueado Slim",
             "description": "Testando informações.",
             "category": "led",
-            "startingPrice": 572.23,
+            "startingPrice": 574.18,
             "rating": 4.8,
-            "image": "https://s2.glbimg.com/Dm7Dhv5ExhULEye2EW8zRLlEb6c=/smart/e.glbimg.com/og/ed/f/original/2018/04/06/prem1.jpg",
-            "images": [],
+            "image": "https://www.havan.com.br/media/catalog/product/cache/6e8e24cc73e2eff11526e72b5f24c033/g/e/geladeira-frost-fun-candy-tateti_734555.jpg",
+            "images": [
+                  "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&q=80&w=600&h=600",
+                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1RflAzm4GyA73P_cErN-h-epAytbF1lHQvvFSVag51zTtX1ROlRocqBXr&s=10"
+            ],
             "thicknessOptions": [
                   4,
                   5,
@@ -1086,13 +1213,13 @@
                         "value": "Grátis"
                   }
             ],
-            "exactPrice": false,
-            "pinned": true,
-            "isNovidade": true,
-            "isMaisVendido": true,
+            "exactPrice": true,
+            "pinned": false,
+            "isNovidade": false,
+            "isMaisVendido": false,
             "hasTimer": true,
-            "freteGratis": true,
-            "timerEndsAt": 1784688992793
+            "freteGratis": false,
+            "timerEndsAt": 1784733821684
       }
 ];
 // === PRODUCTS_END ===
@@ -1194,6 +1321,10 @@
           if (data.sellerWhatsApp) {
             sellerWhatsApp = data.sellerWhatsApp;
           }
+          if (data.visualConfig) {
+            visualConfig = Object.assign({}, visualConfig, data.visualConfig);
+            applyVisualConfig();
+          }
 
           // Sync with LocalStorage
           localStorage.setItem('cristal_art_products', JSON.stringify(products));
@@ -1208,6 +1339,7 @@
           updateWhatsAppDisplay();
           renderCategoryFilters();
           renderProducts();
+          applyVisualConfig();
           if (typeof renderAdminTabContent === 'function') {
             renderAdminTabContent();
           }
@@ -1242,8 +1374,10 @@
       renderCategoryFilters();
       renderProducts();
       renderTestimonials();
+      applyVisualConfig();
       renderFAQ();
-      document.getElementById('current-year').innerText = new Date().getFullYear();
+      const yrEl = document.getElementById('current-year');
+      if (yrEl) yrEl.innerText = new Date().getFullYear();
 
       // Check if we are in the development/preview environment
       const isDevEnv = 
