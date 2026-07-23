@@ -284,6 +284,44 @@
     }
     window.makeRelativePath = makeRelativePath;
 
+    // Circular-safe object cloner and JSON stringifier to prevent TypeError: Converting circular structure to JSON
+    function safeClone(obj) {
+      if (obj === null || typeof obj !== 'object') return obj;
+      const seen = new WeakSet();
+      function clean(val) {
+        if (val === null || typeof val !== 'object') return val;
+        if (typeof Node !== 'undefined' && val instanceof Node) return undefined;
+        if (typeof Window !== 'undefined' && val instanceof Window) return undefined;
+        if (typeof Event !== 'undefined' && val instanceof Event) return undefined;
+        if (seen.has(val)) return undefined;
+        seen.add(val);
+        if (Array.isArray(val)) {
+          return val.map(clean).filter(item => item !== undefined);
+        }
+        const copy = {};
+        for (const k of Object.keys(val)) {
+          if (k.startsWith('$') || k.startsWith('_')) continue;
+          const cleaned = clean(val[k]);
+          if (cleaned !== undefined) {
+            copy[k] = cleaned;
+          }
+        }
+        return copy;
+      }
+      return clean(obj);
+    }
+    window.safeClone = safeClone;
+
+    function safeJsonStringify(obj, space) {
+      try {
+        return JSON.stringify(safeClone(obj), null, space);
+      } catch (err) {
+        console.warn('[safeJsonStringify] Fallback:', err);
+        return '{}';
+      }
+    }
+    window.safeJsonStringify = safeJsonStringify;
+
     // Helper to resolve relative image paths inside admin
     function getAdminImageSrc(src) {
       return formatImagePath(src);
@@ -570,7 +608,7 @@
         { question: 'Os espelhos mancham ou oxidam?', answer: 'Não. Trabalhamos apenas com cristais de altíssima qualidade com fabricação moderna sem cobre ou chumbo, aumentando em 10 vezes a durabilidade contra oxidação.' }
       ]
     };
-    let visualConfig = JSON.parse(JSON.stringify(defaultVisualConfig));
+    let visualConfig = safeClone(defaultVisualConfig);
     
     let activeAdminTab = 'produtos';
     let currentEditingProductId = null;
@@ -778,7 +816,7 @@
           if (cleanProds.length > 0) {
             products = cleanProds;
           } else if (products.length === 0) {
-            products = JSON.parse(JSON.stringify(defaultProducts));
+            products = safeClone(defaultProducts);
           }
           if (data.categories && data.categories.length > 0) categories = data.categories;
           if (data.installmentRates && Object.keys(data.installmentRates).length > 0) installmentRates = data.installmentRates;
@@ -797,7 +835,7 @@
         showToast('Falha na comunicação com o servidor local', 'error');
       } finally {
         if (products.length === 0) {
-          products = JSON.parse(JSON.stringify(defaultProducts));
+          products = safeClone(defaultProducts);
         }
         switchAdminTab(activeAdminTab);
       }
@@ -865,7 +903,7 @@
     function renderAdminTabContent(searchQuery = '') {
       products = sanitizeProducts(products);
       if (products.length === 0) {
-        products = JSON.parse(JSON.stringify(defaultProducts));
+        products = safeClone(defaultProducts);
       }
       const container = document.getElementById('admin-tabs-content');
       if (!container) return;
@@ -1918,25 +1956,26 @@
             </div>
 
             <!-- Grid 5: Atendimento Comercial e Botões de Suporte Direct -->
-            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-4 shadow-3xs">
+            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-5 shadow-3xs">
               <div class="flex items-center justify-between border-b border-stone-100 pb-3">
                 <h5 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
                   <i data-lucide="message-square" class="h-4 w-4 text-amber-600"></i>
-                  Atendimento Comercial e Botões Diretos ao WhatsApp
+                  Atendimento Comercial e Botão de Atendimento Direto (Cabeçalho)
                 </h5>
               </div>
 
+              <!-- Toggles Grid -->
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex items-center justify-between p-4 bg-stone-50 rounded-xl border border-stone-200">
                   <div>
-                    <span class="block text-xs font-bold text-stone-900">Botão de Atendimento Direto no Cabeçalho</span>
-                    <span class="text-[10px] text-stone-500">Exibe ou oculta o botão superior de cotação imediata</span>
+                    <span class="block text-xs font-bold text-stone-900">Exibir Botão "Atendimento Direto"</span>
+                    <span class="text-[10px] text-stone-500">Ativa ou desativa o botão de chamada de cotação no topo</span>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
                     <input 
                       type="checkbox" 
-                      ${visualConfig.showDirectSupportBtn ? 'checked' : ''} 
-                      onchange="updateVisualConfigLive('showDirectSupportBtn', this.checked)"
+                      ${visualConfig.showDirectSupportBtn !== false ? 'checked' : ''} 
+                      onchange="updateVisualConfigLive('showDirectSupportBtn', this.checked, true)"
                       class="sr-only peer" 
                     />
                     <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
@@ -1945,18 +1984,109 @@
 
                 <div class="flex items-center justify-between p-4 bg-stone-50 rounded-xl border border-stone-200">
                   <div>
-                    <span class="block text-xs font-bold text-stone-900">Atendimento Comercial Direto no WhatsApp</span>
-                    <span class="text-[10px] text-stone-500">Exibe ou oculta a barra comercial superior com os dados do vendedor</span>
+                    <span class="block text-xs font-bold text-stone-900">Barra de Vendedor Comercial Direto</span>
+                    <span class="text-[10px] text-stone-500">Exibe ou oculta a barra superior de vendedor de plantão</span>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
                     <input 
                       type="checkbox" 
                       ${visualConfig.showWhatsAppCommercialSupport ? 'checked' : ''} 
-                      onchange="updateVisualConfigLive('showWhatsAppCommercialSupport', this.checked)"
+                      onchange="updateVisualConfigLive('showWhatsAppCommercialSupport', this.checked, true)"
                       class="sr-only peer" 
                     />
                     <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
+                </div>
+              </div>
+
+              <!-- Personalização Detalhada do Botão de Atendimento Direto -->
+              <div class="p-4 bg-amber-50/40 rounded-2xl border border-amber-200/70 space-y-4">
+                <h6 class="text-[11px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                  <i data-lucide="sliders" class="h-3.5 w-3.5 text-amber-600"></i>
+                  Personalização Completa do Botão "Atendimento Direto"
+                </h6>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                  <!-- Texto do Botão -->
+                  <div>
+                    <label class="block text-[11px] font-bold text-stone-700 mb-1">Texto do Botão</label>
+                    <input 
+                      type="text" 
+                      value="${visualConfig.directSupportBtnText || ''}" 
+                      oninput="updateVisualConfigLive('directSupportBtnText', this.value, true)"
+                      placeholder="Padrão: Atendimento Direto"
+                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <!-- Estilo / Aparência -->
+                  <div>
+                    <label class="block text-[11px] font-bold text-stone-700 mb-1">Estilo & Cor do Botão</label>
+                    <select 
+                      onchange="updateVisualConfigLive('directSupportBtnStyle', this.value, true)"
+                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="outline" ${visualConfig.directSupportBtnStyle === 'outline' || !visualConfig.directSupportBtnStyle ? 'selected' : ''}>Contorno Elegante (Minimalista)</option>
+                      <option value="emerald_solid" ${visualConfig.directSupportBtnStyle === 'emerald_solid' ? 'selected' : ''}>Verde Destaque WhatsApp (Sólido)</option>
+                      <option value="amber_gold" ${visualConfig.directSupportBtnStyle === 'amber_gold' ? 'selected' : ''}>Dourado Cristal Art (Premium)</option>
+                      <option value="dark_luxury" ${visualConfig.directSupportBtnStyle === 'dark_luxury' ? 'selected' : ''}>Preto Luxo (Moderno)</option>
+                    </select>
+                  </div>
+
+                  <!-- Ícone do Botão -->
+                  <div>
+                    <label class="block text-[11px] font-bold text-stone-700 mb-1">Ícone Interno</label>
+                    <select 
+                      onchange="updateVisualConfigLive('directSupportBtnIcon', this.value, true)"
+                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="message-square" ${visualConfig.directSupportBtnIcon === 'message-square' || !visualConfig.directSupportBtnIcon ? 'selected' : ''}>Balão de Mensagem (Padrão)</option>
+                      <option value="phone" ${visualConfig.directSupportBtnIcon === 'phone' ? 'selected' : ''}>Ícone de Telefone</option>
+                      <option value="message-circle" ${visualConfig.directSupportBtnIcon === 'message-circle' ? 'selected' : ''}>Círculo de Chat WhatsApp</option>
+                      <option value="send" ${visualConfig.directSupportBtnIcon === 'send' ? 'selected' : ''}>Avião de Envio (Send)</option>
+                      <option value="sparkles" ${visualConfig.directSupportBtnIcon === 'sparkles' ? 'selected' : ''}>Brilho Especial (Sparkles)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Live Preview Card do Botão -->
+                <div class="bg-stone-900 p-4 rounded-xl border border-stone-800 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                      Pré-visualização do Botão no Topo
+                    </span>
+                    <p class="text-[9px] text-stone-400 mt-0.5">Como os visitantes visualizarão o botão no cabeçalho</p>
+                  </div>
+                  
+                  <div class="bg-stone-950 p-3 rounded-lg border border-stone-800 flex items-center gap-3">
+                    ${visualConfig.showDirectSupportBtn !== false ? (() => {
+                      const bText = visualConfig.directSupportBtnText || 'Atendimento Direto';
+                      const bStyle = visualConfig.directSupportBtnStyle || 'outline';
+                      const bIcon = visualConfig.directSupportBtnIcon || 'message-square';
+
+                      let styleClasses = 'border border-stone-300 text-white hover:bg-stone-800 bg-transparent';
+                      if (bStyle === 'emerald_solid') {
+                        styleClasses = 'bg-emerald-600 text-white font-black border-0 shadow-md';
+                      } else if (bStyle === 'amber_gold') {
+                        styleClasses = 'bg-amber-500 text-stone-950 font-black border-0 shadow-md';
+                      } else if (bStyle === 'dark_luxury') {
+                        styleClasses = 'bg-stone-800 text-white font-bold border border-stone-700 shadow-sm';
+                      }
+
+                      return `
+                        <div class="px-4 py-2 rounded-full text-xs flex items-center gap-1.5 uppercase font-bold tracking-wider ${styleClasses}">
+                          <i data-lucide="${bIcon}" class="h-3.5 w-3.5"></i>
+                          <span>${bText}</span>
+                        </div>
+                      `;
+                    })() : `
+                      <span class="text-xs text-stone-500 font-bold italic flex items-center gap-1.5">
+                        <i data-lucide="eye-off" class="h-4 w-4 text-stone-600"></i>
+                        Botão Oculto no Site
+                      </span>
+                    `}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2142,7 +2272,7 @@
           const res = await fetch(getApiUrl('/api/upload-image'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ base64 })
+            body: safeJsonStringify({ base64 })
           });
           const data = await res.json();
           if (data.success && data.url) {
@@ -2171,7 +2301,7 @@
           const res = await fetch(getApiUrl('/api/upload-image'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ base64 })
+            body: safeJsonStringify({ base64 })
           });
           const data = await res.json();
           if (data.success && data.url) {
@@ -2638,7 +2768,7 @@
       }
 
       if (p && p.techSpecs && Array.isArray(p.techSpecs)) {
-        currentFormTechSpecs = JSON.parse(JSON.stringify(p.techSpecs));
+        currentFormTechSpecs = safeClone(p.techSpecs);
       } else {
         currentFormTechSpecs = [
           { label: 'Medida', value: '50X70cm' },
@@ -3255,7 +3385,7 @@
             const uploadResponse = await fetch(getApiUrl('/api/upload-image'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ base64: img.src })
+              body: safeJsonStringify({ base64: img.src })
             });
             const uploadResult = await uploadResponse.json();
             if (uploadResult.success && uploadResult.url) {
@@ -3382,7 +3512,7 @@
       fetch(getApiUrl('/api/save-state'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: safeJsonStringify({ 
           products: products, 
           whatsAppNumber: whatsAppNumber, 
           categories: categories, 
@@ -3460,7 +3590,7 @@
       }
       try {
         const docRef = window.firebaseDoc(window.firebaseDb, "config", "main");
-        await firestoreWithTimeout(window.firebaseSetDoc(docRef, {
+        const payload = safeClone({
           products: products, 
           whatsAppNumber: whatsAppNumber, 
           categories: categories, 
@@ -3470,7 +3600,8 @@
           sellerWhatsApp: sellerWhatsApp,
           visualConfig: visualConfig,
           updatedAt: new Date().toISOString()
-        }), 2500);
+        });
+        await firestoreWithTimeout(window.firebaseSetDoc(docRef, payload), 2500);
         return true;
       } catch (err) {
         console.warn('[Firestore] Client save in offline mode:', err.message || err);

@@ -113,6 +113,38 @@ async function saveFirestoreState(data: any) {
   }
 }
 
+function safeCloneServer(obj: any) {
+  if (obj === null || typeof obj !== 'object') return obj;
+  const seen = new WeakSet();
+  function clean(val: any): any {
+    if (val === null || typeof val !== 'object') return val;
+    if (seen.has(val)) return undefined;
+    seen.add(val);
+    if (Array.isArray(val)) {
+      return val.map(clean).filter((item: any) => item !== undefined);
+    }
+    const copy: any = {};
+    for (const k of Object.keys(val)) {
+      if (k.startsWith('$') || k.startsWith('_')) continue;
+      const cleaned = clean(val[k]);
+      if (cleaned !== undefined) {
+        copy[k] = cleaned;
+      }
+    }
+    return copy;
+  }
+  return clean(obj);
+}
+
+function safeJsonStringifyServer(obj: any, space?: number) {
+  try {
+    return JSON.stringify(safeCloneServer(obj), null, space);
+  } catch (err) {
+    console.warn("[safeJsonStringifyServer] Fallback:", err);
+    return "{}";
+  }
+}
+
 // Helper to replace content between delimiters in a string (in-memory)
 function injectIntoHtml(html: string, startDelim: string, endDelim: string, newContent: string): string {
   const startIdx = html.indexOf(startDelim);
@@ -490,12 +522,12 @@ async function startServer() {
       });
 
       // Strings to inject locally as fallback
-      const productsStr = `    products = ${JSON.stringify(cleanProducts, null, 6)};`;
+      const productsStr = `    products = ${safeJsonStringifyServer(cleanProducts, 6)};`;
       const whatsAppStr = `    let whatsAppNumber = '${whatsAppNumber}';`;
-      const categoriesStr = `    let categories = ${JSON.stringify(categories, null, 6)};`;
-      const ratesStr = `    let installmentRates = ${JSON.stringify(installmentRates, null, 6)};`;
-      const extraFieldsStr = extraFieldsConfig ? `    let extraFieldsConfig = ${JSON.stringify(extraFieldsConfig, null, 6)};` : "";
-      const visualConfigStr = visualConfig ? `    let visualConfig = ${JSON.stringify(visualConfig, null, 6)};` : "";
+      const categoriesStr = `    let categories = ${safeJsonStringifyServer(categories, 6)};`;
+      const ratesStr = `    let installmentRates = ${safeJsonStringifyServer(installmentRates, 6)};`;
+      const extraFieldsStr = extraFieldsConfig ? `    let extraFieldsConfig = ${safeJsonStringifyServer(extraFieldsConfig, 6)};` : "";
+      const visualConfigStr = visualConfig ? `    let visualConfig = ${safeJsonStringifyServer(visualConfig, 6)};` : "";
       const sellerStr = (sellerName !== undefined && sellerWhatsApp !== undefined) 
         ? `    let sellerName = '${sellerName}';\n    let sellerWhatsApp = '${sellerWhatsApp}';`
         : "";
@@ -575,7 +607,7 @@ async function startServer() {
 
         if (products) {
           const cleanProds = normalizeProducts(products);
-          const productsStr = `    products = ${JSON.stringify(cleanProds, null, 6)};`;
+          const productsStr = `    products = ${safeJsonStringifyServer(cleanProds, 6)};`;
           html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
         }
         if (whatsAppNumber) {
@@ -583,15 +615,15 @@ async function startServer() {
           html = injectIntoHtml(html, "// === WHATSAPP_START ===", "// === WHATSAPP_END ===", whatsAppStr);
         }
         if (categories) {
-          const categoriesStr = `    let categories = ${JSON.stringify(categories, null, 6)};`;
+          const categoriesStr = `    let categories = ${safeJsonStringifyServer(categories, 6)};`;
           html = injectIntoHtml(html, "// === CATEGORIES_START ===", "// === CATEGORIES_END ===", categoriesStr);
         }
         if (installmentRates) {
-          const ratesStr = `    let installmentRates = ${JSON.stringify(installmentRates, null, 6)};`;
+          const ratesStr = `    let installmentRates = ${safeJsonStringifyServer(installmentRates, 6)};`;
           html = injectIntoHtml(html, "// === RATES_START ===", "// === RATES_END ===", ratesStr);
         }
         if (extraFieldsConfig) {
-          const extraFieldsStr = `    let extraFieldsConfig = ${JSON.stringify(extraFieldsConfig, null, 6)};`;
+          const extraFieldsStr = `    let extraFieldsConfig = ${safeJsonStringifyServer(extraFieldsConfig, 6)};`;
           html = injectIntoHtml(html, "// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", extraFieldsStr);
         }
         if (sellerName !== undefined && sellerWhatsApp !== undefined) {
@@ -599,7 +631,7 @@ async function startServer() {
           html = injectIntoHtml(html, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);
         }
         if (visualConfig) {
-          const visualConfigStr = `    let visualConfig = ${JSON.stringify(visualConfig, null, 6)};`;
+          const visualConfigStr = `    let visualConfig = ${safeJsonStringifyServer(visualConfig, 6)};`;
           html = injectIntoHtml(html, "// === VISUAL_START ===", "// === VISUAL_END ===", visualConfigStr);
         }
       }
@@ -644,7 +676,7 @@ async function startServer() {
 
         if (products) {
           const cleanProds = normalizeProducts(products);
-          const productsStr = `    products = ${JSON.stringify(cleanProds, null, 6)};`;
+          const productsStr = `    products = ${safeJsonStringifyServer(cleanProds, 6)};`;
           html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
         }
         if (whatsAppNumber) {
@@ -652,15 +684,15 @@ async function startServer() {
           html = injectIntoHtml(html, "// === WHATSAPP_START ===", "// === WHATSAPP_END ===", whatsAppStr);
         }
         if (categories) {
-          const categoriesStr = `    let categories = ${JSON.stringify(categories, null, 6)};`;
+          const categoriesStr = `    let categories = ${safeJsonStringifyServer(categories, 6)};`;
           html = injectIntoHtml(html, "// === CATEGORIES_START ===", "// === CATEGORIES_END ===", categoriesStr);
         }
         if (installmentRates) {
-          const ratesStr = `    let installmentRates = ${JSON.stringify(installmentRates, null, 6)};`;
+          const ratesStr = `    let installmentRates = ${safeJsonStringifyServer(installmentRates, 6)};`;
           html = injectIntoHtml(html, "// === RATES_START ===", "// === RATES_END ===", ratesStr);
         }
         if (extraFieldsConfig) {
-          const extraFieldsStr = `    let extraFieldsConfig = ${JSON.stringify(extraFieldsConfig, null, 6)};`;
+          const extraFieldsStr = `    let extraFieldsConfig = ${safeJsonStringifyServer(extraFieldsConfig, 6)};`;
           html = injectIntoHtml(html, "// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", extraFieldsStr);
         }
         if (sellerName !== undefined && sellerWhatsApp !== undefined) {
@@ -668,7 +700,7 @@ async function startServer() {
           html = injectIntoHtml(html, "// === SELLER_START ===", "// === SELLER_END ===", sellerStr);
         }
         if (visualConfig) {
-          const visualConfigStr = `    let visualConfig = ${JSON.stringify(visualConfig, null, 6)};`;
+          const visualConfigStr = `    let visualConfig = ${safeJsonStringifyServer(visualConfig, 6)};`;
           html = injectIntoHtml(html, "// === VISUAL_START ===", "// === VISUAL_END ===", visualConfigStr);
         }
       }
