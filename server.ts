@@ -125,6 +125,24 @@ function injectIntoHtml(html: string, startDelim: string, endDelim: string, newC
   return html;
 }
 
+function normalizeProducts(products: any): any[] {
+  if (!products) return [];
+  if (Array.isArray(products)) return products;
+  if (typeof products === "string") {
+    try {
+      const parsed = JSON.parse(products);
+      if (Array.isArray(parsed)) return parsed;
+      if (typeof parsed === "string") {
+        const doubleParsed = JSON.parse(parsed);
+        if (Array.isArray(doubleParsed)) return doubleParsed;
+      }
+    } catch (e) {
+      console.error("Notice: normalizeProducts string parse error:", e);
+    }
+  }
+  return [];
+}
+
 function getProductsFromHtml(html: string): any[] {
   const startDelim = "// === PRODUCTS_START ===";
   const endDelim = "// === PRODUCTS_END ===";
@@ -136,7 +154,7 @@ function getProductsFromHtml(html: string): any[] {
     if (match) {
       try {
         const jsonText = match[1].trim();
-        return JSON.parse(jsonText);
+        return normalizeProducts(jsonText);
       } catch (e) {
         console.log("Notice: Parse issue with configuration data, fallback active.");
       }
@@ -361,87 +379,87 @@ async function startServer() {
   // Get state handler
   app.get("/api/get-state", async (req: any, res: any) => {
     try {
+      const extractValFromHtml = (html: string, startDelim: string, endDelim: string, regex: RegExp, defaultValue: any) => {
+        const startIdx = html.indexOf(startDelim);
+        const endIdx = html.indexOf(endDelim);
+        if (startIdx !== -1 && endIdx !== -1 && startIdx < endIdx) {
+          const section = html.substring(startIdx + startDelim.length, endIdx);
+          const match = section.match(regex);
+          if (match) {
+            try {
+              return JSON.parse(match[1].trim());
+            } catch (e) {
+              const raw = match[1].trim();
+              if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+                return raw.slice(1, -1);
+              }
+              return raw;
+            }
+          }
+        }
+        return defaultValue;
+      };
+
       // 1. Try Firestore first
       const firestoreState = await getFirestoreState();
-      if (firestoreState) {
-        return res.json({
-          success: true,
-          products: firestoreState.products || [],
-          whatsAppNumber: firestoreState.whatsAppNumber || "",
-          categories: firestoreState.categories || [],
-          installmentRates: firestoreState.installmentRates || {},
-          extraFieldsConfig: firestoreState.extraFieldsConfig || {},
-          sellerName: firestoreState.sellerName || "",
-          sellerWhatsApp: firestoreState.sellerWhatsApp || "",
-          visualConfig: firestoreState.visualConfig || null
-        });
-      }
+      
+      let products = firestoreState ? normalizeProducts(firestoreState.products) : [];
+      let whatsAppNumber = firestoreState?.whatsAppNumber || "";
+      let categories = firestoreState?.categories || [];
+      let installmentRates = firestoreState?.installmentRates || {};
+      let extraFieldsConfig = firestoreState?.extraFieldsConfig || {};
+      let sellerName = firestoreState?.sellerName || "";
+      let sellerWhatsApp = firestoreState?.sellerWhatsApp || "";
+      let visualConfig = firestoreState?.visualConfig || null;
 
-      // 2. Fallback: Parse from index.html on server disk
+      // 2. Fallback: Parse missing values from index.html on server disk if empty
       const indexHtmlPath = path.join(process.cwd(), "index.html");
       if (fs.existsSync(indexHtmlPath)) {
         const html = fs.readFileSync(indexHtmlPath, "utf-8");
         
-        // Helper to extract values
-        const extractVal = (startDelim: string, endDelim: string, regex: RegExp, defaultValue: any) => {
-          const startIdx = html.indexOf(startDelim);
-          const endIdx = html.indexOf(endDelim);
-          if (startIdx !== -1 && endIdx !== -1 && startIdx < endIdx) {
-            const section = html.substring(startIdx + startDelim.length, endIdx);
-            const match = section.match(regex);
-            if (match) {
-              try {
-                return JSON.parse(match[1].trim());
-              } catch (e) {
-                // String constant or other format
-                const raw = match[1].trim();
-                if (raw.startsWith("'") && raw.endsWith("'")) {
-                  return raw.slice(1, -1);
-                }
-                if (raw.startsWith('"') && raw.endsWith('"')) {
-                  return raw.slice(1, -1);
-                }
-                return raw;
-              }
-            }
-          }
-          return defaultValue;
-        };
-
-        const products = extractVal("// === PRODUCTS_START ===", "// === PRODUCTS_END ===", /products\s*=\s*([\s\S]+?);/, []);
-        const whatsAppNumber = extractVal("// === WHATSAPP_START ===", "// === WHATSAPP_END ===", /whatsAppNumber\s*=\s*['"]?([0-9]+)['"]?;/, "");
-        const categories = extractVal("// === CATEGORIES_START ===", "// === CATEGORIES_END ===", /categories\s*=\s*([\s\S]+?);/, []);
-        const installmentRates = extractVal("// === RATES_START ===", "// === RATES_END ===", /installmentRates\s*=\s*([\s\S]+?);/, {});
-        const extraFieldsConfig = extractVal("// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", /extraFieldsConfig\s*=\s*([\s\S]+?);/, {});
-        const visualConfig = extractVal("// === VISUAL_START ===", "// === VISUAL_END ===", /visualConfig\s*=\s*([\s\S]+?);/, null);
-        
-        // Custom extract for seller variables
-        let sellerName = "";
-        let sellerWhatsApp = "";
-        const sellerIdxStart = html.indexOf("// === SELLER_START ===");
-        const sellerIdxEnd = html.indexOf("// === SELLER_END ===");
-        if (sellerIdxStart !== -1 && sellerIdxEnd !== -1) {
-          const section = html.substring(sellerIdxStart, sellerIdxEnd);
-          const nameMatch = section.match(/sellerName\s*=\s*['"]([^'"]+)['"]/);
-          const waMatch = section.match(/sellerWhatsApp\s*=\s*['"]([^'"]+)['"]/);
-          if (nameMatch) sellerName = nameMatch[1];
-          if (waMatch) sellerWhatsApp = waMatch[1];
+        if (!products || products.length === 0) {
+          const staticProds = extractValFromHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", /products\s*=\s*([\s\S]+?);/, []);
+          products = normalizeProducts(staticProds);
         }
-
-        return res.json({
-          success: true,
-          products,
-          whatsAppNumber,
-          categories,
-          installmentRates,
-          extraFieldsConfig,
-          sellerName,
-          sellerWhatsApp,
-          visualConfig
-        });
+        if (!whatsAppNumber) {
+          whatsAppNumber = extractValFromHtml(html, "// === WHATSAPP_START ===", "// === WHATSAPP_END ===", /whatsAppNumber\s*=\s*['"]?([0-9]+)['"]?;/, "");
+        }
+        if (!categories || categories.length === 0) {
+          categories = extractValFromHtml(html, "// === CATEGORIES_START ===", "// === CATEGORIES_END ===", /categories\s*=\s*([\s\S]+?);/, []);
+        }
+        if (!installmentRates || Object.keys(installmentRates).length === 0) {
+          installmentRates = extractValFromHtml(html, "// === RATES_START ===", "// === RATES_END ===", /installmentRates\s*=\s*([\s\S]+?);/, {});
+        }
+        if (!extraFieldsConfig || Object.keys(extraFieldsConfig).length === 0) {
+          extraFieldsConfig = extractValFromHtml(html, "// === EXTRA_FIELDS_START ===", "// === EXTRA_FIELDS_END ===", /extraFieldsConfig\s*=\s*([\s\S]+?);/, {});
+        }
+        if (!visualConfig) {
+          visualConfig = extractValFromHtml(html, "// === VISUAL_START ===", "// === VISUAL_END ===", /visualConfig\s*=\s*([\s\S]+?);/, null);
+        }
+        if (!sellerName) {
+          const sellerIdxStart = html.indexOf("// === SELLER_START ===");
+          const sellerIdxEnd = html.indexOf("// === SELLER_END ===");
+          if (sellerIdxStart !== -1 && sellerIdxEnd !== -1) {
+            const section = html.substring(sellerIdxStart, sellerIdxEnd);
+            const nameMatch = section.match(/sellerName\s*=\s*['"]([^'"]+)['"]/);
+            const waMatch = section.match(/sellerWhatsApp\s*=\s*['"]([^'"]+)['"]/);
+            if (nameMatch) sellerName = nameMatch[1];
+            if (waMatch) sellerWhatsApp = waMatch[1];
+          }
+        }
       }
 
-      return res.status(500).json({ success: false, error: "Configuration not found" });
+      return res.json({
+        success: true,
+        products,
+        whatsAppNumber,
+        categories,
+        installmentRates,
+        extraFieldsConfig,
+        sellerName,
+        sellerWhatsApp,
+        visualConfig
+      });
     } catch (err: any) {
       console.error("Error in /api/get-state:", err);
       return res.status(500).json({ success: false, error: err.message });
@@ -453,13 +471,15 @@ async function startServer() {
     try {
       const { products, whatsAppNumber, categories, installmentRates, extraFieldsConfig, sellerName, sellerWhatsApp, visualConfig } = req.body;
 
-      if (!products || !whatsAppNumber || !categories || !installmentRates) {
+      if (!products || categories === undefined || installmentRates === undefined) {
         return res.status(400).json({ success: false, error: "Missing required fields" });
       }
 
+      const cleanProducts = normalizeProducts(products);
+
       // Save to Firestore first for cloud durability
       await saveFirestoreState({
-        products,
+        products: cleanProducts,
         whatsAppNumber,
         categories,
         installmentRates,
@@ -470,7 +490,7 @@ async function startServer() {
       });
 
       // Strings to inject locally as fallback
-      const productsStr = `    products = ${JSON.stringify(products, null, 6)};`;
+      const productsStr = `    products = ${JSON.stringify(cleanProducts, null, 6)};`;
       const whatsAppStr = `    let whatsAppNumber = '${whatsAppNumber}';`;
       const categoriesStr = `    let categories = ${JSON.stringify(categories, null, 6)};`;
       const ratesStr = `    let installmentRates = ${JSON.stringify(installmentRates, null, 6)};`;
@@ -554,7 +574,8 @@ async function startServer() {
         html = injectIntoHtml(html, "// === BACKEND_URL_START ===", "// === BACKEND_URL_END ===", backendUrlStr);
 
         if (products) {
-          const productsStr = `    products = ${JSON.stringify(products, null, 6)};`;
+          const cleanProds = normalizeProducts(products);
+          const productsStr = `    products = ${JSON.stringify(cleanProds, null, 6)};`;
           html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
         }
         if (whatsAppNumber) {
@@ -622,7 +643,8 @@ async function startServer() {
         html = injectIntoHtml(html, "// === BACKEND_URL_START ===", "// === BACKEND_URL_END ===", backendUrlStr);
 
         if (products) {
-          const productsStr = `    products = ${JSON.stringify(products, null, 6)};`;
+          const cleanProds = normalizeProducts(products);
+          const productsStr = `    products = ${JSON.stringify(cleanProds, null, 6)};`;
           html = injectIntoHtml(html, "// === PRODUCTS_START ===", "// === PRODUCTS_END ===", productsStr);
         }
         if (whatsAppNumber) {

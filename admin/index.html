@@ -348,6 +348,181 @@
     let sellerWhatsApp = '';
     let extraFieldsConfig = {};
 
+    const defaultProducts = [
+      {
+        "id": "espelho-vildrex-pisa-luxo",
+        "name": "Espelho Vildrex Pisa Luxo",
+        "description": "Design moderno lapidado luxo com iluminação de LED embutida de alta intensidade e acabamento Pisa impecável.",
+        "category": "led",
+        "startingPrice": 189,
+        "rating": 4.9,
+        "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/4629f622caf66144f36279e9b89c1236-b633ee04f884cc444217531996653906-1024-1024.png",
+        "images": [],
+        "thicknessOptions": [4, 5, 6],
+        "finishOptions": ["Lapidado com LED Integrado"],
+        "popularSizes": [
+          { "width": 50, "height": 70, "price": 189 },
+          { "width": 60, "height": 80, "price": 274 },
+          { "width": 80, "height": 100, "price": 396 }
+        ],
+        "highlights": [
+          "LED iluminação embutida de alta intensidade",
+          "Vidro lapidado polido livre de chumbo (não oxida)",
+          "Bivolt automático (110V/220V) pronto para instalar"
+        ],
+        "measure": "50X70cm",
+        "lapidado": "Sim",
+        "comLed": "Sim",
+        "entrega": "Grátis",
+        "pinned": true,
+        "isNovidade": true,
+        "isMaisVendido": true,
+        "hasTimer": false,
+        "freteGratis": true
+      },
+      {
+        "id": "espelho-organico-led",
+        "name": "Espelho Orgânico Retroiluminado LED",
+        "description": "Formato fluído orgânico assimétrico com bordas lapidadas e iluminação traseira em LED halo difuso.",
+        "category": "organico",
+        "startingPrice": 279,
+        "rating": 4.8,
+        "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/design-sem-nome-2023-08-01t162547-210-915449eb72c69ea4c216909180026778-1024-1024.png",
+        "images": [],
+        "thicknessOptions": [4, 5],
+        "finishOptions": ["Lapidado Orgânico Polido"],
+        "popularSizes": [
+          { "width": 50, "height": 80, "price": 279 },
+          { "width": 60, "height": 90, "price": 404 },
+          { "width": 80, "height": 110, "price": 585 }
+        ],
+        "highlights": [
+          "Design fluído orgânico exclusivo para hall e banheiros",
+          "Luz LED traseira difusa elegante",
+          "Suporte de fixação reforçado de alta segurança"
+        ],
+        "measure": "50X80cm",
+        "lapidado": "Sim",
+        "comLed": "Sim",
+        "entrega": "Grátis",
+        "pinned": true,
+        "isNovidade": true,
+        "isMaisVendido": false,
+        "hasTimer": false,
+        "freteGratis": true
+      },
+      {
+        "id": "espelho-bisotado-retangular",
+        "name": "Espelho Bisotado Retangular Luxo",
+        "description": "Acabamento bisotê lapidado facetado de 15mm que cria uma sofisticada moldura de vidro reflexiva.",
+        "category": "classico",
+        "startingPrice": 149,
+        "rating": 4.9,
+        "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/espelho-bisote-retangular-1024-1024.png",
+        "images": [],
+        "thicknessOptions": [4, 5, 6],
+        "finishOptions": ["Bisotado 15mm Facetado"],
+        "popularSizes": [
+          { "width": 50, "height": 70, "price": 149 },
+          { "width": 60, "height": 80, "price": 216 },
+          { "width": 80, "height": 100, "price": 312 }
+        ],
+        "highlights": [
+          "Bisotê lapidado facetado de 15mm nas bordas",
+          "Superfície plana cristalina sem distorções",
+          "Fácil higienização e alta durabilidade"
+        ],
+        "measure": "50X70cm",
+        "lapidado": "Sim",
+        "comLed": "Não",
+        "entrega": "Grátis",
+        "pinned": false,
+        "isNovidade": false,
+        "isMaisVendido": true,
+        "hasTimer": false,
+        "freteGratis": false
+      },
+      {
+        "id": "espelho-camarim-oval-led",
+        "name": "Espelho Camarim Oval com LED",
+        "description": "Formato oval alongado contemporâneo ideal para banheiros, lavabos e camarins de maquiagem.",
+        "category": "led",
+        "startingPrice": 239,
+        "rating": 4.9,
+        "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/espelho-oval-led-1024-1024.png",
+        "images": [],
+        "thicknessOptions": [4, 5],
+        "finishOptions": ["Lapidado Oval com LED"],
+        "popularSizes": [
+          { "width": 50, "height": 90, "price": 239 },
+          { "width": 60, "height": 100, "price": 346 },
+          { "width": 70, "height": 120, "price": 501 }
+        ],
+        "highlights": [
+          "Formato oval elegante alongado",
+          "Acionamento prático e iluminação homogênea",
+          "Perfeito para toucadores e lavabos"
+        ],
+        "measure": "50X90cm",
+        "lapidado": "Sim",
+        "comLed": "Sim",
+        "entrega": "Grátis",
+        "pinned": true,
+        "isNovidade": false,
+        "isMaisVendido": true,
+        "hasTimer": false,
+        "freteGratis": true
+      },
+      {
+        "id": "espelho-adnet-couro",
+        "name": "Espelho Adnet Couro Alça Suspensa",
+        "description": "Design ícone com moldura e tiras em couro ecológico nobre e pino de fixação incluso.",
+        "category": "classico",
+        "startingPrice": 119,
+        "rating": 4.7,
+        "image": "https://acdn-us.mitiendanube.com/stores/006/486/331/products/espelho-adnet-couro-1024-1024.png",
+        "images": [],
+        "thicknessOptions": [4],
+        "finishOptions": ["Moldura Couro Ecológico"],
+        "popularSizes": [
+          { "width": 45, "height": 45, "price": 119 },
+          { "width": 60, "height": 60, "price": 172 },
+          { "width": 70, "height": 70, "price": 249 }
+        ],
+        "highlights": [
+          "Alça suspensa em couro de altíssima resistência",
+          "Pino de pendurar incluso na cor da moldura",
+          "Estilo atemporal para salas e suítes"
+        ],
+        "measure": "45cm Diâmetro",
+        "lapidado": "Sim",
+        "comLed": "Não",
+        "entrega": "A consultar",
+        "pinned": false,
+        "isNovidade": false,
+        "isMaisVendido": false,
+        "hasTimer": false,
+        "freteGratis": false
+      }
+    ];
+
+    function sanitizeProducts(data) {
+      if (!data) return [];
+      let list = [];
+      if (Array.isArray(data)) list = data;
+      else if (typeof data === 'string') {
+        try {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed)) list = parsed;
+          else if (typeof parsed === 'string') {
+            const doubleParsed = JSON.parse(parsed);
+            if (Array.isArray(doubleParsed)) list = doubleParsed;
+          }
+        } catch(e) {}
+      }
+      return list.filter(p => p && typeof p === 'object' && (p.id || p.name));
+    }
+
     const defaultVisualConfig = {
       textColor: '#1c1917',
       buttonBg: '#d97706',
@@ -371,10 +546,20 @@
       logoText: 'CRISTAL ART',
       logoSubtext: 'ESTÚDIO BOUTIQUE',
       logoImageUrl: '',
+      logoHeight: 48,
+
+      footerLogoType: 'same_as_header',
+      footerLogoImageUrl: '',
+      footerLogoHeight: 40,
 
       headerStyle: 'classic',
       slideInterval: 5,
       fontSizeScale: 'normal',
+
+      siteScale: '100',
+      titleFontSize: 'normal',
+      subtitleFontSize: 'normal',
+      bodyFontSize: 'normal',
 
       faqTitle: 'Dúvidas Frequentes',
       faqSub: 'Tudo o que você precisa saber sobre a fabricação, prazo e instalação dos nossos espelhos',
@@ -589,13 +774,18 @@
         const response = await fetch(getApiUrl('/api/get-state'));
         const data = await response.json();
         if (data.success) {
-          products = data.products || [];
-          categories = data.categories || [];
-          installmentRates = data.installmentRates || {};
-          whatsAppNumber = data.whatsAppNumber || '';
-          sellerName = data.sellerName || '';
-          sellerWhatsApp = data.sellerWhatsApp || '';
-          extraFieldsConfig = data.extraFieldsConfig || {};
+          const cleanProds = sanitizeProducts(data.products);
+          if (cleanProds.length > 0) {
+            products = cleanProds;
+          } else if (products.length === 0) {
+            products = JSON.parse(JSON.stringify(defaultProducts));
+          }
+          if (data.categories && data.categories.length > 0) categories = data.categories;
+          if (data.installmentRates && Object.keys(data.installmentRates).length > 0) installmentRates = data.installmentRates;
+          if (data.whatsAppNumber) whatsAppNumber = data.whatsAppNumber;
+          if (data.sellerName) sellerName = data.sellerName;
+          if (data.sellerWhatsApp) sellerWhatsApp = data.sellerWhatsApp;
+          if (data.extraFieldsConfig) extraFieldsConfig = data.extraFieldsConfig;
           if (data.visualConfig) {
             visualConfig = Object.assign({}, defaultVisualConfig, data.visualConfig);
           }
@@ -606,6 +796,9 @@
         console.error('Failed to fetch initial state:', err);
         showToast('Falha na comunicação com o servidor local', 'error');
       } finally {
+        if (products.length === 0) {
+          products = JSON.parse(JSON.stringify(defaultProducts));
+        }
         switchAdminTab(activeAdminTab);
       }
     }
@@ -624,8 +817,13 @@
         const docSnap = await firestoreWithTimeout(window.firebaseGetDoc(docRef), 2500);
         if (docSnap && docSnap.exists && docSnap.exists()) {
           const data = docSnap.data();
-          if (data.products) products = data.products;
-          if (data.categories) categories = data.categories;
+          if (data.products) {
+            const cleanProds = sanitizeProducts(data.products);
+            if (cleanProds.length > 0) {
+              products = cleanProds;
+            }
+          }
+          if (data.categories && data.categories.length > 0) categories = data.categories;
           if (data.installmentRates) installmentRates = data.installmentRates;
           if (data.whatsAppNumber) whatsAppNumber = data.whatsAppNumber;
           if (data.sellerName) sellerName = data.sellerName;
@@ -665,11 +863,21 @@
     }
 
     function renderAdminTabContent(searchQuery = '') {
+      products = sanitizeProducts(products);
+      if (products.length === 0) {
+        products = JSON.parse(JSON.stringify(defaultProducts));
+      }
       const container = document.getElementById('admin-tabs-content');
       if (!container) return;
 
       if (activeAdminTab === 'produtos') {
-        const filtered = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()));
+        const searchLower = (searchQuery || '').toLowerCase();
+        const filtered = products.filter(p => {
+          if (!p) return false;
+          const pName = String(p.name || '').toLowerCase();
+          const pCat = String(p.category || '').toLowerCase();
+          return pName.includes(searchLower) || pCat.includes(searchLower);
+        });
 
         container.innerHTML = `
           <div class="space-y-6">
@@ -1135,94 +1343,244 @@
               </button>
             </div>
 
-            <!-- Grid 1: Identidade da Marca & Logotipo -->
-            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-4 shadow-3xs">
+            <!-- Grid 1: Identidade da Marca & Logotipos (Topo e Rodapé) -->
+            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-6 shadow-3xs">
               <div class="flex items-center justify-between border-b border-stone-100 pb-3">
                 <h5 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
                   <i data-lucide="image" class="h-4 w-4 text-amber-600"></i>
-                  Identidade Visual & Logotipo
+                  Identidade Visual & Logotipos (Topo e Rodapé)
                 </h5>
-                <span class="text-[10px] text-stone-400">Escolha exibir o nome da loja ou um logotipo em imagem</span>
+                <span class="text-[10px] text-stone-400">Insira logotipos por Upload ou URL em qualquer formato (PNG, SVG, JPG, WEBP, GIF, ICO)</span>
               </div>
               
-              <div class="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Tipo de Logotipo no Cabeçalho</label>
-                  <select 
-                    onchange="updateVisualConfigLive('logoType', this.value)"
-                    class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="text" ${visualConfig.logoType === 'text' ? 'selected' : ''}>Texto Elegante com Ícone</option>
-                    <option value="image" ${visualConfig.logoType === 'image' ? 'selected' : ''}>Imagem do Logotipo (PNG/SVG/JPG)</option>
-                  </select>
+              <!-- Seção Logotipo do Cabeçalho -->
+              <div class="space-y-4 bg-stone-50/80 p-5 rounded-2xl border border-stone-200/80">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                  <h6 class="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                    <i data-lucide="layout-template" class="h-4 w-4 text-amber-600"></i>
+                    Logotipo do Topo (Cabeçalho do Site)
+                  </h6>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-stone-600">Modo de Exibição:</span>
+                    <select 
+                      onchange="updateVisualConfigLive('logoType', this.value); renderAdminTabContent();"
+                      class="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-bold text-stone-900 bg-white focus:outline-none focus:border-amber-500 shadow-2xs"
+                    >
+                      <option value="image" ${visualConfig.logoType === 'image' || visualConfig.logoImageUrl ? 'selected' : ''}>Logotipo em Imagem (Upload/URL)</option>
+                      <option value="text" ${visualConfig.logoType === 'text' && !visualConfig.logoImageUrl ? 'selected' : ''}>Texto Tipográfico Elegante</option>
+                    </select>
+                  </div>
                 </div>
 
-                ${visualConfig.logoType === 'text' ? `
-                  <div>
-                    <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Nome Principal da Marca</label>
-                    <input 
-                      type="text" 
-                      value="${visualConfig.logoText || ''}" 
-                      oninput="updateVisualConfigLive('logoText', this.value)"
-                      placeholder="Ex: CRISTAL ART"
-                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Subtítulo do Logotipo</label>
-                    <input 
-                      type="text" 
-                      value="${visualConfig.logoSubtext || ''}" 
-                      oninput="updateVisualConfigLive('logoSubtext', this.value)"
-                      placeholder="Ex: ESTÚDIO BOUTIQUE"
-                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-medium text-stone-800 bg-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                ` : `
-                  <div class="sm:col-span-2">
-                    <label class="block text-[11px] font-bold text-stone-700 mb-1.5">URL do Logotipo</label>
-                    <div class="flex gap-2">
-                      <input 
-                        type="text" 
-                        value="${visualConfig.logoImageUrl || ''}" 
-                        oninput="updateVisualConfigLive('logoImageUrl', this.value)"
-                        placeholder="Cole a URL do logotipo ou faça o upload ao lado..."
-                        class="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
-                      />
-                      <label class="bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0">
-                        <i data-lucide="upload" class="h-3.5 w-3.5"></i>
-                        Enviar Foto
-                        <input type="file" accept="image/*" class="hidden" onchange="uploadLogoFile(this)" />
+                <div class="grid gap-5 lg:grid-cols-3">
+                  <div class="lg:col-span-2 space-y-4">
+                    <div>
+                      <label class="block text-[11px] font-extrabold text-stone-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                        <span>URL do Logotipo do Cabeçalho</span>
+                        <span class="text-[10px] text-amber-700 font-semibold">Formatos: PNG, SVG, JPG, WEBP</span>
                       </label>
+                      <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="relative flex-1">
+                          <input 
+                            type="text" 
+                            value="${visualConfig.logoImageUrl || ''}" 
+                            oninput="updateVisualConfigLive('logoImageUrl', this.value); if(this.value) { visualConfig.logoType='image'; } renderAdminTabContent();"
+                            placeholder="https://exemplo.com/logo.png ou IMGs/logo.png"
+                            class="w-full px-3 py-2.5 rounded-xl border border-stone-200 text-xs font-bold text-stone-900 bg-white focus:outline-none focus:border-amber-500 shadow-2xs"
+                          />
+                        </div>
+                        <label class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-2 shrink-0 shadow-xs">
+                          <i data-lucide="upload" class="h-4 w-4"></i>
+                          <span>Enviar Imagem (Upload)</span>
+                          <input type="file" accept="image/*" class="hidden" onchange="uploadLogoFile(this)" />
+                        </label>
+                      </div>
+                      <p class="text-[10px] text-stone-500 mt-1.5">
+                        💡 Cole um link direto de imagem de qualquer site ou clique em <b>Enviar Imagem</b> para fazer upload do seu computador/celular.
+                      </p>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2 bg-white p-3.5 rounded-xl border border-stone-200">
+                      <div>
+                        <label class="block text-[11px] font-bold text-stone-700 mb-1">Nome Alternativo / Texto da Marca</label>
+                        <input 
+                          type="text" 
+                          value="${visualConfig.logoText || ''}" 
+                          oninput="updateVisualConfigLive('logoText', this.value)"
+                          placeholder="Ex: CRISTAL ART"
+                          class="w-full px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-bold text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-[11px] font-bold text-stone-700 mb-1">Subtítulo do Logotipo</label>
+                        <input 
+                          type="text" 
+                          value="${visualConfig.logoSubtext || ''}" 
+                          oninput="updateVisualConfigLive('logoSubtext', this.value)"
+                          placeholder="Ex: ESTÚDIO BOUTIQUE"
+                          class="w-full px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-medium text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="flex items-center justify-between mb-1">
+                        <label class="text-[11px] font-extrabold text-stone-800">Altura / Tamanho do Logotipo no Topo</label>
+                        <span class="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">${visualConfig.logoHeight || 48}px</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="20" 
+                        max="140" 
+                        step="2" 
+                        value="${visualConfig.logoHeight || 48}" 
+                        oninput="updateVisualConfigLive('logoHeight', parseInt(this.value, 10)); renderAdminTabContent();"
+                        class="w-full accent-amber-600 cursor-pointer"
+                      />
                     </div>
                   </div>
-                `}
+
+                  <!-- Preview Box -->
+                  <div class="bg-stone-900 p-4 rounded-xl border border-stone-800 flex flex-col justify-between space-y-3">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                      Pré-visualização do Logotipo
+                    </span>
+                    <div class="flex-1 bg-stone-950/80 rounded-lg p-3 border border-stone-800 flex items-center justify-center min-h-[90px] overflow-hidden">
+                      ${visualConfig.logoImageUrl ? `
+                        <img 
+                          src="${getAdminImageSrc(visualConfig.logoImageUrl)}" 
+                          style="max-height: ${Math.min(visualConfig.logoHeight || 48, 80)}px;" 
+                          class="w-auto max-w-full object-contain transition-all" 
+                          onerror="this.onerror=null; this.src='https://placehold.co/200x60?text=Logo+Invalido';" 
+                        />
+                      ` : `
+                        <div class="text-center text-stone-500 text-xs">
+                          <i data-lucide="image" class="h-6 w-6 mx-auto mb-1 text-stone-600"></i>
+                          Nenhum logotipo por imagem cadastrado.
+                        </div>
+                      `}
+                    </div>
+                    <div class="text-[9px] text-stone-400 text-center font-mono">
+                      Status: <span class="${visualConfig.logoImageUrl ? 'text-emerald-400 font-bold' : 'text-amber-400'}">${visualConfig.logoImageUrl ? 'Imagem Ativa' : 'Usando Texto'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Seção Logotipo do Rodapé -->
+              <div class="space-y-3 bg-stone-50/80 p-4 rounded-xl border border-stone-200/80">
+                <h6 class="text-[11px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                  <i data-lucide="panel-bottom" class="h-3.5 w-3.5"></i>
+                  Logotipo do Rodapé (Footer)
+                </h6>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Apresentação do Logotipo no Rodapé</label>
+                    <select 
+                      onchange="updateVisualConfigLive('footerLogoType', this.value, true)"
+                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="same_as_header" ${visualConfig.footerLogoType === 'same_as_header' ? 'selected' : ''}>Mesmo Logotipo do Cabeçalho</option>
+                      <option value="text" ${visualConfig.footerLogoType === 'text' ? 'selected' : ''}>Texto Institucional do Rodapé</option>
+                      <option value="image" ${visualConfig.footerLogoType === 'image' ? 'selected' : ''}>Imagem Exclusiva para o Rodapé</option>
+                    </select>
+                  </div>
+
+                  <!-- Live Preview Box Footer Logo -->
+                  <div class="bg-stone-900 p-3.5 rounded-xl border border-stone-800 flex items-center justify-between">
+                    <div>
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                        Pré-visualização
+                      </span>
+                      <p class="text-[9px] text-stone-400 mt-0.5">Visualização no rodapé</p>
+                    </div>
+                    <div class="bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 flex items-center justify-center min-h-[46px] max-w-[200px] overflow-hidden">
+                      ${(() => {
+                        const fH = visualConfig.footerLogoHeight || 40;
+                        const fType = visualConfig.footerLogoType || 'same_as_header';
+                        if (fType === 'image' && visualConfig.footerLogoImageUrl) {
+                          return `<img src="${getAdminImageSrc(visualConfig.footerLogoImageUrl)}" style="max-height: ${fH}px;" class="w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/180x50?text=Logo+Invalido';" />`;
+                        } else if (fType === 'same_as_header') {
+                          if (visualConfig.logoImageUrl || visualConfig.logoType === 'image') {
+                            const hImg = visualConfig.logoImageUrl || 'https://i.postimg.cc/LsdbCK8q/logotipo-site-Comprimida.png';
+                            return `<img src="${getAdminImageSrc(hImg)}" style="max-height: ${fH}px;" class="w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/180x50?text=Logo+Invalido';" />`;
+                          } else {
+                            return `<span class="text-xs font-black text-white tracking-widest uppercase">${visualConfig.logoText || 'CRISTAL ART'}</span>`;
+                          }
+                        } else {
+                          return `<span class="text-xs font-black text-white tracking-widest uppercase">${visualConfig.footerTitle || visualConfig.logoText || 'CRISTAL ART'}</span>`;
+                        }
+                      })()}
+                    </div>
+                  </div>
+
+                  ${visualConfig.footerLogoType === 'image' ? `
+                    <div class="sm:col-span-2 space-y-3">
+                      <div>
+                        <label class="block text-[11px] font-bold text-stone-700 mb-1.5">URL do Logotipo do Rodapé</label>
+                        <div class="flex gap-2">
+                          <input 
+                            type="text" 
+                            value="${visualConfig.footerLogoImageUrl || ''}" 
+                            oninput="updateVisualConfigLive('footerLogoImageUrl', this.value, true)"
+                            placeholder="Cole a URL ou faça o upload ao lado..."
+                            class="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
+                          />
+                          <label class="bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 shadow-xs">
+                            <i data-lucide="upload" class="h-3.5 w-3.5 text-amber-400"></i>
+                            Enviar Foto
+                            <input type="file" accept="image/*" class="hidden" onchange="uploadFooterLogoFile(this)" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="flex items-center justify-between mb-1">
+                          <label class="text-[11px] font-bold text-stone-700">Altura do Logotipo no Rodapé</label>
+                          <span class="text-[11px] font-black text-amber-700">${visualConfig.footerLogoHeight || 40}px</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="20" 
+                          max="100" 
+                          step="2" 
+                          value="${visualConfig.footerLogoHeight || 40}" 
+                          oninput="updateVisualConfigLive('footerLogoHeight', parseInt(this.value, 10), true)"
+                          class="w-full accent-amber-600 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
               </div>
             </div>
 
-            <!-- Grid 2: 5 Estilos de Menu do Topo -->
+            <!-- Grid 2: Estilos e Formatos do Menu do Topo -->
             <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-4 shadow-3xs">
               <div class="flex items-center justify-between border-b border-stone-100 pb-3">
                 <h5 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
                   <i data-lucide="layout" class="h-4 w-4 text-amber-600"></i>
-                  5 Estilos de Menu do Topo (Cabeçalho Exclusivo)
+                  Sistema de Estilos do Menu Principal (Formatos & Posicionamento)
                 </h5>
-                <span class="text-[10px] text-stone-400">Clique para selecionar a apresentação visual do topo</span>
+                <span class="text-[10px] text-stone-400">Selecione o formato de exibição do cabeçalho</span>
               </div>
 
-              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- Style 1 -->
                 <div 
-                  onclick="updateVisualConfigLive('headerStyle', 'classic')"
+                  onclick="updateVisualConfigLive('headerStyle', 'classic', true)"
                   class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
-                    visualConfig.headerStyle === 'classic' 
+                    visualConfig.headerStyle === 'classic' || !visualConfig.headerStyle
                       ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
                       : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'
                   }"
                 >
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">01. Clássico</span>
-                      ${visualConfig.headerStyle === 'classic' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">01. Clássico Balanceado</span>
+                      ${(visualConfig.headerStyle === 'classic' || !visualConfig.headerStyle) ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
                     </div>
                     <div class="h-8 bg-stone-100 rounded-lg border border-stone-200 flex items-center justify-between px-2 text-[8px] font-bold text-stone-500">
                       <span>LOGO</span>
@@ -1230,11 +1588,12 @@
                       <span class="bg-stone-900 text-white px-1 rounded text-[7px]">CTA</span>
                     </div>
                   </div>
-                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Design equilibrado tradicional com logo à esquerda e ações à direita.</p>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Design equilibrado com logo à esquerda, navegação centro/direita e botão CTA.</p>
                 </div>
 
+                <!-- Style 2 -->
                 <div 
-                  onclick="updateVisualConfigLive('headerStyle', 'centered')"
+                  onclick="updateVisualConfigLive('headerStyle', 'centered', true)"
                   class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
                     visualConfig.headerStyle === 'centered' 
                       ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
@@ -1243,19 +1602,20 @@
                 >
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">02. Centralizado</span>
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">02. Centralizado Premium</span>
                       ${visualConfig.headerStyle === 'centered' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
                     </div>
                     <div class="h-8 bg-stone-100 rounded-lg border border-stone-200 flex flex-col items-center justify-center px-2 text-[8px] font-bold text-stone-500">
-                      <span class="text-stone-900 text-[9px]">LOGO DE LUXO</span>
+                      <span class="text-stone-900 text-[9px] font-black">LOGOTIPO</span>
                       <div class="flex gap-2 text-[7px]"><span>CATÁLOGO</span><span>DÚVIDAS</span></div>
                     </div>
                   </div>
-                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Destaque para o logotipo no centro com navegação refinada abaixo.</p>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Marca em destaque supremo no centro com links dispostos ao redor.</p>
                 </div>
 
+                <!-- Style 3 -->
                 <div 
-                  onclick="updateVisualConfigLive('headerStyle', 'minimal')"
+                  onclick="updateVisualConfigLive('headerStyle', 'minimal', true)"
                   class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
                     visualConfig.headerStyle === 'minimal' 
                       ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
@@ -1264,7 +1624,7 @@
                 >
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">03. Minimalista</span>
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">03. Minimalista Slim</span>
                       ${visualConfig.headerStyle === 'minimal' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
                     </div>
                     <div class="h-8 bg-stone-50 rounded-lg border border-stone-200/80 flex items-center justify-between px-2 text-[8px] font-bold text-stone-400">
@@ -1272,11 +1632,12 @@
                       <span class="text-stone-800">MENU CLEAN</span>
                     </div>
                   </div>
-                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Design limpo, linhas ultra-finas e foco em legibilidade.</p>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Linhas finas, altura reduzida e estética extremamente leve.</p>
                 </div>
 
+                <!-- Style 4 -->
                 <div 
-                  onclick="updateVisualConfigLive('headerStyle', 'floating')"
+                  onclick="updateVisualConfigLive('headerStyle', 'floating', true)"
                   class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
                     visualConfig.headerStyle === 'floating' 
                       ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
@@ -1285,7 +1646,7 @@
                 >
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">04. Vidro Flutuante</span>
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">04. Cápsula Flutuante</span>
                       ${visualConfig.headerStyle === 'floating' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
                     </div>
                     <div class="h-8 bg-white/80 rounded-full border border-stone-300 flex items-center justify-between px-3 text-[8px] font-bold text-stone-600 shadow-3xs">
@@ -1293,11 +1654,12 @@
                       <span class="bg-amber-500 text-white px-1.5 py-0.5 rounded-full text-[6px]">FLOAT</span>
                     </div>
                   </div>
-                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Menu em cápsula flutuante arredondada com efeito de vidro fosco.</p>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Header em pílula flutuante arredondada com efeito de vidro fosco.</p>
                 </div>
 
+                <!-- Style 5 -->
                 <div 
-                  onclick="updateVisualConfigLive('headerStyle', 'badge')"
+                  onclick="updateVisualConfigLive('headerStyle', 'badge', true)"
                   class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
                     visualConfig.headerStyle === 'badge' 
                       ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
@@ -1306,15 +1668,129 @@
                 >
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">05. Badge de Luxo</span>
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">05. Badge / Pills Moderno</span>
                       ${visualConfig.headerStyle === 'badge' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
+                    </div>
+                    <div class="h-8 bg-stone-100 rounded-lg flex items-center justify-between px-2 text-[8px] font-bold text-stone-700">
+                      <span>LOGO</span>
+                      <span class="bg-stone-300/80 px-2 py-0.5 rounded-full">BADGES</span>
+                    </div>
+                  </div>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Itens de menu em formato de pílulas interativas de alto contraste.</p>
+                </div>
+
+                <!-- Style 6 -->
+                <div 
+                  onclick="updateVisualConfigLive('headerStyle', 'dark_luxury', true)"
+                  class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
+                    visualConfig.headerStyle === 'dark_luxury' 
+                      ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
+                      : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'
+                  }"
+                >
+                  <div>
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">06. Escuro Nobre</span>
+                      ${visualConfig.headerStyle === 'dark_luxury' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
                     </div>
                     <div class="h-8 bg-stone-950 text-white rounded-lg flex items-center justify-between px-2 text-[8px] font-bold">
                       <span class="text-amber-400">LUXURY</span>
-                      <span class="bg-amber-500 text-stone-950 px-1 rounded text-[7px]">COMPRAR</span>
+                      <span class="bg-amber-500 text-stone-950 px-1 rounded text-[7px]">OURO</span>
                     </div>
                   </div>
-                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Barra escura executiva de luxo com detalhes dourados e alto contraste.</p>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Barra escura executiva de luxo com detalhes em dourado/âmbar.</p>
+                </div>
+
+                <!-- Style 7 -->
+                <div 
+                  onclick="updateVisualConfigLive('headerStyle', 'left_inline', true)"
+                  class="p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
+                    visualConfig.headerStyle === 'left_inline' 
+                      ? 'border-amber-500 bg-amber-50/20 text-stone-950 shadow-sm' 
+                      : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'
+                  }"
+                >
+                  <div>
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">07. Alinhado à Esquerda</span>
+                      ${visualConfig.headerStyle === 'left_inline' ? `<i data-lucide="check-circle-2" class="h-4 w-4 text-amber-600"></i>` : ''}
+                    </div>
+                    <div class="h-8 bg-stone-100 rounded-lg border border-stone-200 flex items-center gap-2 px-2 text-[8px] font-bold text-stone-600">
+                      <span class="text-stone-950">LOGO</span>
+                      <span>MENU</span>
+                      <span>LINKS</span>
+                    </div>
+                  </div>
+                  <p class="text-[10px] text-stone-500 mt-3 leading-tight">Logotipo e todos os links de navegação alinhados juntos à esquerda.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grid 3: Escala Geral do Site & Tamanho de Fontes -->
+            <div class="bg-white border border-stone-200 p-6 rounded-2xl space-y-4 shadow-3xs">
+              <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h5 class="text-xs font-black uppercase text-stone-900 flex items-center gap-2">
+                  <i data-lucide="type" class="h-4 w-4 text-amber-600"></i>
+                  Escala Geral do Site & Tamanhos de Fontes (Títulos, Subtítulos e Texto)
+                </h5>
+                <span class="text-[10px] text-stone-400">Ajuste o zoom geral do site e o tamanho relativo de cada tipo de texto</span>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Escala Geral do Site (Zoom %)</label>
+                  <select 
+                    onchange="updateVisualConfigLive('siteScale', this.value)"
+                    class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="85" ${visualConfig.siteScale === '85' ? 'selected' : ''}>85% (Compacto)</option>
+                    <option value="90" ${visualConfig.siteScale === '90' ? 'selected' : ''}>90% (Sutil)</option>
+                    <option value="95" ${visualConfig.siteScale === '95' ? 'selected' : ''}>95% (Fino)</option>
+                    <option value="100" ${visualConfig.siteScale === '100' || !visualConfig.siteScale ? 'selected' : ''}>100% (Padrão Ideal)</option>
+                    <option value="105" ${visualConfig.siteScale === '105' ? 'selected' : ''}>105% (Ampliado)</option>
+                    <option value="110" ${visualConfig.siteScale === '110' ? 'selected' : ''}>110% (Alta Visibilidade)</option>
+                    <option value="115" ${visualConfig.siteScale === '115' ? 'selected' : ''}>115% (Extra Grande)</option>
+                    <option value="120" ${visualConfig.siteScale === '120' ? 'selected' : ''}>120% (Máxima Acessibilidade)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Tamanho dos Títulos Principais (H1/H2)</label>
+                  <select 
+                    onchange="updateVisualConfigLive('titleFontSize', this.value)"
+                    class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="sm" ${visualConfig.titleFontSize === 'sm' ? 'selected' : ''}>Pequeno (85%)</option>
+                    <option value="normal" ${visualConfig.titleFontSize === 'normal' || !visualConfig.titleFontSize ? 'selected' : ''}>Padrão (100%)</option>
+                    <option value="lg" ${visualConfig.titleFontSize === 'lg' ? 'selected' : ''}>Grande (115%)</option>
+                    <option value="xl" ${visualConfig.titleFontSize === 'xl' ? 'selected' : ''}>Extra Grande (130%)</option>
+                    <option value="2xl" ${visualConfig.titleFontSize === '2xl' ? 'selected' : ''}>Gigante de Luxo (145%)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Tamanho dos Subtítulos & Apoio</label>
+                  <select 
+                    onchange="updateVisualConfigLive('subtitleFontSize', this.value)"
+                    class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="sm" ${visualConfig.subtitleFontSize === 'sm' ? 'selected' : ''}>Discreto (85%)</option>
+                    <option value="normal" ${visualConfig.subtitleFontSize === 'normal' || !visualConfig.subtitleFontSize ? 'selected' : ''}>Padrão (100%)</option>
+                    <option value="lg" ${visualConfig.subtitleFontSize === 'lg' ? 'selected' : ''}>Destacado (115%)</option>
+                    <option value="xl" ${visualConfig.subtitleFontSize === 'xl' ? 'selected' : ''}>Extra Legível (130%)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Tamanho do Texto do Corpo</label>
+                  <select 
+                    onchange="updateVisualConfigLive('bodyFontSize', this.value)"
+                    class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-stone-50 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="sm" ${visualConfig.bodyFontSize === 'sm' ? 'selected' : ''}>Compacto (90%)</option>
+                    <option value="normal" ${visualConfig.bodyFontSize === 'normal' || !visualConfig.bodyFontSize ? 'selected' : ''}>Padrão Balanceado (100%)</option>
+                    <option value="lg" ${visualConfig.bodyFontSize === 'lg' ? 'selected' : ''}>Espaçado (110%)</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -1623,9 +2099,12 @@
       if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    function updateVisualConfigLive(key, val) {
+    function updateVisualConfigLive(key, val, forceReRender = false) {
       visualConfig[key] = val;
       handleAutoChange(true);
+      if (forceReRender || ['headerStyle', 'footerLogoType', 'logoType', 'faqStyle', 'siteScale', 'titleFontSize', 'subtitleFontSize', 'bodyFontSize', 'showDirectSupportBtn', 'showWhatsAppCommercialSupport'].includes(key)) {
+        renderAdminTabContent();
+      }
     }
 
     function updateFaqItemLive(index, field, val) {
@@ -1668,13 +2147,42 @@
           const data = await res.json();
           if (data.success && data.url) {
             visualConfig.logoImageUrl = makeRelativePath(data.url);
+            visualConfig.logoType = 'image';
             handleAutoChange();
+            renderAdminTabContent();
             showToast('Logotipo atualizado com sucesso!', 'success');
           } else {
             alert('Erro no upload da imagem: ' + (data.error || 'Erro desconhecido'));
           }
         } catch (err) {
           alert('Erro de conexão ao enviar logotipo: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function uploadFooterLogoFile(inputEl) {
+      if (!inputEl.files || inputEl.files.length === 0) return;
+      const file = inputEl.files[0];
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64 = e.target.result;
+        try {
+          const res = await fetch(getApiUrl('/api/upload-image'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64 })
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            visualConfig.footerLogoImageUrl = makeRelativePath(data.url);
+            handleAutoChange();
+            showToast('Logotipo do rodapé atualizado com sucesso!', 'success');
+          } else {
+            alert('Erro no upload da imagem do rodapé: ' + (data.error || 'Erro desconhecido'));
+          }
+        } catch (err) {
+          alert('Erro de conexão ao enviar logotipo do rodapé: ' + err.message);
         }
       };
       reader.readAsDataURL(file);
