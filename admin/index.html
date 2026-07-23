@@ -16,6 +16,9 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest" defer></script>
   
+  <!-- FontAwesome 6 (Brands & Solid Icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -1507,43 +1510,86 @@
               </div>
 
               <!-- Seção Logotipo do Rodapé -->
-              <div class="space-y-3 bg-stone-50/80 p-4 rounded-xl border border-stone-200/80">
-                <h6 class="text-[11px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-                  <i data-lucide="panel-bottom" class="h-3.5 w-3.5"></i>
-                  Logotipo do Rodapé (Footer)
-                </h6>
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label class="block text-[11px] font-bold text-stone-700 mb-1.5">Apresentação do Logotipo no Rodapé</label>
+              <div class="space-y-4 bg-stone-50/80 p-5 rounded-2xl border border-stone-200/80">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                  <h6 class="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                    <i data-lucide="panel-bottom" class="h-4 w-4 text-amber-600"></i>
+                    Logotipo do Rodapé (Footer do Site)
+                  </h6>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-stone-600">Apresentação:</span>
                     <select 
                       onchange="updateVisualConfigLive('footerLogoType', this.value, true)"
-                      class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
+                      class="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-bold text-stone-900 bg-white focus:outline-none focus:border-amber-500 shadow-2xs"
                     >
                       <option value="same_as_header" ${visualConfig.footerLogoType === 'same_as_header' ? 'selected' : ''}>Mesmo Logotipo do Cabeçalho</option>
+                      <option value="image" ${visualConfig.footerLogoType === 'image' ? 'selected' : ''}>Logotipo em Imagem Exclusiva para o Rodapé</option>
                       <option value="text" ${visualConfig.footerLogoType === 'text' ? 'selected' : ''}>Texto Institucional do Rodapé</option>
-                      <option value="image" ${visualConfig.footerLogoType === 'image' ? 'selected' : ''}>Imagem Exclusiva para o Rodapé</option>
                     </select>
                   </div>
+                </div>
 
-                  <!-- Live Preview Box Footer Logo -->
-                  <div class="bg-stone-900 p-3.5 rounded-xl border border-stone-800 flex items-center justify-between">
+                <div class="grid gap-5 lg:grid-cols-3">
+                  <div class="lg:col-span-2 space-y-4">
                     <div>
-                      <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                        <i data-lucide="eye" class="h-3.5 w-3.5"></i>
-                        Pré-visualização
-                      </span>
-                      <p class="text-[9px] text-stone-400 mt-0.5">Visualização no rodapé</p>
+                      <label class="block text-[11px] font-extrabold text-stone-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                        <span>URL do Logotipo do Rodapé</span>
+                        <span class="text-[10px] text-amber-700 font-semibold">Formatos: PNG, SVG, JPG, WEBP</span>
+                      </label>
+                      <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="relative flex-1">
+                          <input 
+                            type="text" 
+                            value="${visualConfig.footerLogoImageUrl || ''}" 
+                            oninput="updateVisualConfigLive('footerLogoImageUrl', this.value); if(this.value) { visualConfig.footerLogoType='image'; } renderAdminTabContent();"
+                            placeholder="https://exemplo.com/logo-footer.png ou IMGs/logo.png"
+                            class="w-full px-3 py-2.5 rounded-xl border border-stone-200 text-xs font-bold text-stone-900 bg-white focus:outline-none focus:border-amber-500 shadow-2xs"
+                          />
+                        </div>
+                        <label class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-2 shrink-0 shadow-xs">
+                          <i data-lucide="upload" class="h-4 w-4"></i>
+                          <span>Enviar Foto (Upload)</span>
+                          <input type="file" accept="image/*" class="hidden" onchange="uploadFooterLogoFile(this)" />
+                        </label>
+                      </div>
+                      <p class="text-[10px] text-stone-500 mt-1.5">
+                        💡 Envie uma imagem do seu dispositivo ou cole um link de URL direto. Ao enviar ou colar URL, a exibição será ajustada para a imagem do rodapé.
+                      </p>
                     </div>
-                    <div class="bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 flex items-center justify-center min-h-[46px] max-w-[200px] overflow-hidden">
+
+                    <div>
+                      <div class="flex items-center justify-between mb-1">
+                        <label class="text-[11px] font-extrabold text-stone-800">Altura / Tamanho do Logotipo no Rodapé (Escala)</label>
+                        <span class="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">${visualConfig.footerLogoHeight || 40}px</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="20" 
+                        max="140" 
+                        step="2" 
+                        value="${visualConfig.footerLogoHeight || 40}" 
+                        oninput="updateVisualConfigLive('footerLogoHeight', parseInt(this.value, 10), true)"
+                        class="w-full accent-amber-600 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Preview Box -->
+                  <div class="bg-stone-900 p-4 rounded-xl border border-stone-800 flex flex-col justify-between space-y-3">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                      Pré-visualização do Rodapé
+                    </span>
+                    <div class="flex-1 bg-stone-950/80 rounded-lg p-3 border border-stone-800 flex items-center justify-center min-h-[90px] overflow-hidden">
                       ${(() => {
                         const fH = visualConfig.footerLogoHeight || 40;
                         const fType = visualConfig.footerLogoType || 'same_as_header';
                         if (fType === 'image' && visualConfig.footerLogoImageUrl) {
-                          return `<img src="${getAdminImageSrc(visualConfig.footerLogoImageUrl)}" style="max-height: ${fH}px;" class="w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/180x50?text=Logo+Invalido';" />`;
+                          return `<img src="${getAdminImageSrc(visualConfig.footerLogoImageUrl)}" style="max-height: ${Math.min(fH, 90)}px;" class="w-auto object-contain transition-all" onerror="this.onerror=null; this.src='https://placehold.co/180x50?text=Logo+Invalido';" />`;
                         } else if (fType === 'same_as_header') {
                           if (visualConfig.logoImageUrl || visualConfig.logoType === 'image') {
                             const hImg = visualConfig.logoImageUrl || 'https://i.postimg.cc/LsdbCK8q/logotipo-site-Comprimida.png';
-                            return `<img src="${getAdminImageSrc(hImg)}" style="max-height: ${fH}px;" class="w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/180x50?text=Logo+Invalido';" />`;
+                            return `<img src="${getAdminImageSrc(hImg)}" style="max-height: ${Math.min(fH, 90)}px;" class="w-auto object-contain transition-all" onerror="this.onerror=null; this.src='https://placehold.co/180x50?text=Logo+Invalido';" />`;
                           } else {
                             return `<span class="text-xs font-black text-white tracking-widest uppercase">${visualConfig.logoText || 'CRISTAL ART'}</span>`;
                           }
@@ -1552,45 +1598,10 @@
                         }
                       })()}
                     </div>
-                  </div>
-
-                  ${visualConfig.footerLogoType === 'image' ? `
-                    <div class="sm:col-span-2 space-y-3">
-                      <div>
-                        <label class="block text-[11px] font-bold text-stone-700 mb-1.5">URL do Logotipo do Rodapé</label>
-                        <div class="flex gap-2">
-                          <input 
-                            type="text" 
-                            value="${visualConfig.footerLogoImageUrl || ''}" 
-                            oninput="updateVisualConfigLive('footerLogoImageUrl', this.value, true)"
-                            placeholder="Cole a URL ou faça o upload ao lado..."
-                            class="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold text-stone-800 bg-white focus:outline-none focus:border-amber-500"
-                          />
-                          <label class="bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 shadow-xs">
-                            <i data-lucide="upload" class="h-3.5 w-3.5 text-amber-400"></i>
-                            Enviar Foto
-                            <input type="file" accept="image/*" class="hidden" onchange="uploadFooterLogoFile(this)" />
-                          </label>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div class="flex items-center justify-between mb-1">
-                          <label class="text-[11px] font-bold text-stone-700">Altura do Logotipo no Rodapé</label>
-                          <span class="text-[11px] font-black text-amber-700">${visualConfig.footerLogoHeight || 40}px</span>
-                        </div>
-                        <input 
-                          type="range" 
-                          min="20" 
-                          max="100" 
-                          step="2" 
-                          value="${visualConfig.footerLogoHeight || 40}" 
-                          oninput="updateVisualConfigLive('footerLogoHeight', parseInt(this.value, 10), true)"
-                          class="w-full accent-amber-600 cursor-pointer"
-                        />
-                      </div>
+                    <div class="text-[9px] text-stone-400 text-center font-mono">
+                      Status: <span class="text-emerald-400 font-bold">${visualConfig.footerLogoType || 'same_as_header'}</span>
                     </div>
-                  ` : ''}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2306,7 +2317,9 @@
           const data = await res.json();
           if (data.success && data.url) {
             visualConfig.footerLogoImageUrl = makeRelativePath(data.url);
+            visualConfig.footerLogoType = 'image';
             handleAutoChange();
+            renderAdminTabContent();
             showToast('Logotipo do rodapé atualizado com sucesso!', 'success');
           } else {
             alert('Erro no upload da imagem do rodapé: ' + (data.error || 'Erro desconhecido'));
